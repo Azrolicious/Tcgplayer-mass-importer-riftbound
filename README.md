@@ -28,8 +28,11 @@ double-click `index.html`. Keep the `data` folder next to it.
 
 ## How it works
 
-1. **Choose cards.** All sets and rarities are selected by default. Each set shows its
-   card count and estimated cost. You can also set copies per card and a max price per card.
+1. **Choose cards.** By default you get each set's numbered cards (Origins 001–298,
+   Spiritforged 001–221, and so on) in every rarity. Tick **Extras** to add cards outside
+   those numbered lists. A **Versions** row then lets you pick which kinds; *Alternate Art*
+   stays off unless you tick it. Each set shows its card count and estimated cost. You can
+   also set copies per card and a max price per card.
 2. **Send to TCGplayer.** The cards are split into batches (100 by default). Tap
    **Open in TCGplayer** on a batch. Mass Entry opens with those cards already filled in.
 3. In TCGplayer's **Item Options** popup, keep the printings and conditions you want and
@@ -48,13 +51,49 @@ card. Under **Advanced** you can switch to readable lines instead (`1 Blazing Sc
 which use the same set codes Mass Entry lists under *Show Set/Series Codes*.
 **Copy list** copies a batch's lines so you can paste them into Mass Entry yourself.
 
-## Heads-up: "everything" is expensive
+## What it costs
 
-As of November 2026 there are about 1,800 Riftbound singles on TCGplayer. Buying one of
-each comes to **roughly $200,000 at market price**. Most of that is promos,
-Showcase/Signature/Overnumbered variants and the serial-numbered T1 Worlds cards.
-Untick **Showcase** and **Promo** and you're under $20,000. Add a $5 max price and it's
-under $1,000. The app shows the running total as you change filters.
+Prices as of November 2026 (the app shows a live total as you change filters):
+
+- **Numbered cards of every set (the default):** 1,098 cards, about **$1,400** at market price.
+- **Everything, extras included:** about 1,800 cards and **roughly $200,000**. Most of that is
+  promos, Signature/Overnumbered versions and the serial-numbered T1 Worlds cards. Alternate
+  Art is only about $2,000 of it.
+
+## Numbered cards vs. extras
+
+A set's **numbered list** is its main run, `001/298` to `298/298` for Origins. The data script
+works it out per set (`main_run` in `scripts/update_data.py`):
+
+| Set | Numbered cards | Extras |
+| --- | --- | --- |
+| Origins (OGN) | 001–298 | 61 |
+| Origins: Proving Grounds (OGS) | 01–24 | 4 |
+| Spiritforged (SFD) | 001–221 | 88 |
+| Unleashed (UNL) | 001–219 | 95 |
+| Vendetta (VEN) | 001–166 | 88 |
+| Radiance (RAD) | 001–167 | 79 |
+| Secret Garden (SGN) | 1–3 | 0 |
+| Promo and bundle groups (OPP, PR, JDG, RWB, T12025, RXK/DA) | none | all |
+
+**Extras** are everything else: overnumbered cards (`299/298`), lettered alternate arts
+(`027a/298`), signatures (`299*/298`), tokens, the `R01`–`R06` runes in Spiritforged and later
+sets, and all promo and bundle cards (those reuse other sets' numbers, so they don't count as
+a set's numbered list).
+
+### Versions (only used when extras are on)
+
+Version buckets come from the tags TCGplayer puts in product names (see `variant_of` in
+`scripts/update_data.py`):
+
+| Version | Includes |
+| --- | --- |
+| Alternate Art | `(Alternate Art)`, alternate-art runes like `Fury Rune (A)` / `(R01b)`, `(K/DA Special Art Card)`, `(Full Art)` |
+| Overnumbered | `(Overnumbered)`, `(Heartsteel Overnumbered)` |
+| Signature | `(Signature)`, `(Heartsteel Signature)` |
+| Metal | `(Metal)` prize cards |
+| Other special versions | Oversized, Top 8, Champion, T1 Worlds bundle and serial-numbered cards, and similar |
+| Standard | Everything else |
 
 ## If something goes wrong
 

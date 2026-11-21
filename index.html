@@ -138,6 +138,9 @@
   .chip input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
   .chip:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); }
   .chip .count { color: var(--muted); font-size: 0.8rem; }
+  .hint { margin: 8px 0 0; }
+  .versions { margin: 14px 0 0 30px; }
+  .sub-legend { font-weight: 600; margin-bottom: 8px; }
 
   .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
   .field label { display: block; font-weight: 600; margin-bottom: 6px; }
@@ -206,6 +209,7 @@
     .batch-toolbar .field { width: 100%; }
     .batch-actions .btn, .batch-actions button { flex: 1 1 auto; }
     .batch-actions .check { margin-left: 0; width: 100%; }
+    .versions { margin-left: 0; }
   }
 </style>
 </head>
@@ -238,6 +242,20 @@
       <fieldset>
         <legend>Rarities</legend>
         <div id="rarity-list" class="chips"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Extras</legend>
+        <label class="check">
+          <input id="include-extras" type="checkbox">
+          <span>Include cards outside each set's numbered list <span id="extras-count" class="muted small"></span><br>
+          <span class="muted small">A set's numbered list is its main run, like Origins 001–298. Extras are overnumbered, signature and alternate-art versions, promos, tokens, bundle exclusives, and the R01–R06 runes in later sets.</span></span>
+        </label>
+        <div id="versions" class="versions" hidden>
+          <div class="sub-legend">Versions</div>
+          <div id="variant-list" class="chips"></div>
+          <p class="muted small hint">Alternate Art is off unless you tick it. It covers cards TCGplayer tags "Alternate Art", alternate-art runes, and special- or full-art printings.</p>
+        </div>
       </fieldset>
 
       <div class="fields">
@@ -341,6 +359,16 @@
   var BATCH_SIZES = [25, 50, 100, 200];
   var RARITY_ORDER = ['Common', 'Uncommon', 'Rare', 'Epic', 'Showcase', 'Promo', 'None'];
   var RARITY_LABEL = { None: 'Tokens & other' };
+  // Version buckets come from scripts/update_data.py (variant_of).
+  var VARIANTS = [
+    { id: 'standard', label: 'Standard' },
+    { id: 'alt-art', label: 'Alternate Art' },
+    { id: 'overnumbered', label: 'Overnumbered' },
+    { id: 'signature', label: 'Signature' },
+    { id: 'metal', label: 'Metal' },
+    { id: 'other', label: 'Other special versions' }
+  ];
+  var DEFAULT_EXCLUDED_VARIANTS = ['alt-art'];
 
   // ---- storage (per-device convenience only; the page works without it) ----
   var STORE_PREFIX = 'riftbound-mass-entry:v1:';
@@ -375,6 +403,16 @@
   rarities.sort(function (a, b) { return rarityRank(a) - rarityRank(b) || collator.compare(a, b); });
 
   function priceOf(c) { return c.market != null ? c.market : c.low; }
+  function variantOf(c) { return c.variant || 'standard'; }
+  function isMain(c) { return c.main !== false; } // one of its set's numbered cards, e.g. 001-298
+  function runLabel(s) {
+    if (!s.mainSize) return 'extras only';
+    var w = String(s.mainSize).length;
+    return '1'.padStart(w, '0') + '–' + s.mainSize;
+  }
+  var variantsPresent = VARIANTS.filter(function (v) {
+    return cards.some(function (c) { return variantOf(c) === v.id; });
+  });
 
   // ---- state ----
   // Exclusions are stored (not inclusions) so sets added by a later data refresh start out selected.
@@ -382,6 +420,8 @@
   var state = {
     excludedSets: new Set(saved.excludedSets || []),
     excludedRarities: new Set(saved.excludedRarities || []),
+    excludedVariants: new Set(Array.isArray(saved.excludedVariants) ? saved.excludedVariants : DEFAULT_EXCLUDED_VARIANTS),
+    includeExtras: saved.includeExtras === true,
     qty: clampInt(saved.qty, 1, 99, 1),
     maxPrice: typeof saved.maxPrice === 'string' ? saved.maxPrice : '',
     skipUnlisted: saved.skipUnlisted !== false,
@@ -395,6 +435,8 @@
     save('settings', {
       excludedSets: Array.from(state.excludedSets),
       excludedRarities: Array.from(state.excludedRarities),
+      excludedVariants: Array.from(state.excludedVariants),
+      includeExtras: state.includeExtras,
       qty: state.qty,
       maxPrice: state.maxPrice,
       skipUnlisted: state.skipUnlisted,
@@ -416,21 +458,25 @@
     var n = parseFloat(state.maxPrice);
     return isNaN(n) || n < 0 ? null : n;
   }
-  function passesPriceAndListing(c) {
-    if (state.skipUnlisted && c.low == null) return false;
+  function passesPrice(c) {
     var max = maxPriceValue();
-    if (max != null) {
-      var p = priceOf(c);
-      if (p == null || p > max) return false;
-    }
-    return true;
+    if (max == null) return true;
+    var p = priceOf(c);
+    return p != null && p <= max;
+  }
+  // `ignore` names one filter to leave out, so each filter's counts show what ticking it would add.
+  // Versions only apply once extras are on; every numbered set card is a standard version anyway.
+  function passes(c, ignore) {
+    var extrasOn = state.includeExtras || ignore === 'main'; // the Extras count pretends the box is ticked
+    return (ignore === 'set' || !state.excludedSets.has(c.set)) &&
+      (ignore === 'rarity' || !state.excludedRarities.has(c.rarity)) &&
+      (extrasOn || isMain(c)) &&
+      (ignore === 'variant' || !extrasOn || !state.excludedVariants.has(variantOf(c))) &&
+      (ignore === 'listing' || !state.skipUnlisted || c.low != null) &&
+      passesPrice(c);
   }
   function selectedCards() {
-    return cards.filter(function (c) {
-      return !state.excludedSets.has(c.set) &&
-        !state.excludedRarities.has(c.rarity) &&
-        passesPriceAndListing(c);
-    });
+    return cards.filter(function (c) { return passes(c); });
   }
 
   // ---- formatting ----
@@ -470,7 +516,7 @@
       var meta = el('span', { class: 'set-meta num' });
       var row = el('label', { class: 'set-row', for: 'set-' + s.id }, [
         input,
-        el('span', { class: 'set-name' }, [s.name, el('span', { class: 'code', text: s.code })]),
+        el('span', { class: 'set-name' }, [s.name, el('span', { class: 'code', text: s.code + ' · ' + runLabel(s) })]),
         meta
       ]);
       list.appendChild(el('li', null, [row]));
@@ -501,19 +547,45 @@
     });
   }
 
+  // ---- versions ----
+  var variantChips = {};
+  function buildVariants() {
+    var wrap = $('#variant-list');
+    variantsPresent.forEach(function (v) {
+      var input = el('input', { type: 'checkbox' });
+      input.addEventListener('change', function () {
+        if (input.checked) state.excludedVariants.delete(v.id); else state.excludedVariants.add(v.id);
+        update();
+      });
+      var count = el('span', { class: 'count num' });
+      wrap.appendChild(el('label', { class: 'chip' }, [input, v.label, count]));
+      variantChips[v.id] = { input: input, count: count };
+    });
+  }
+
   function updateFilters() {
     var perSet = {};
     var perRarity = {};
+    var perVariant = {};
     var unlisted = 0;
+    var extras = 0;
     cards.forEach(function (c) {
-      if (c.low == null && !state.excludedSets.has(c.set) && !state.excludedRarities.has(c.rarity)) unlisted++;
-      if (!passesPriceAndListing(c)) return;
-      if (!state.excludedRarities.has(c.rarity)) {
+      if (c.low == null && passes(c, 'listing')) unlisted++;
+      if (!isMain(c) && passes(c, 'main')) extras++;
+      if (passes(c, 'set')) {
         var ps = perSet[c.set] || (perSet[c.set] = { n: 0, cost: 0 });
         ps.n++;
         ps.cost += priceOf(c) || 0;
       }
-      if (!state.excludedSets.has(c.set)) perRarity[c.rarity] = (perRarity[c.rarity] || 0) + 1;
+      if (passes(c, 'rarity')) perRarity[c.rarity] = (perRarity[c.rarity] || 0) + 1;
+      if (passes(c, 'variant')) perVariant[variantOf(c)] = (perVariant[variantOf(c)] || 0) + 1;
+    });
+    $('#include-extras').checked = state.includeExtras;
+    $('#extras-count').textContent = '(' + plural(extras, 'card') + (state.includeExtras ? ' included)' : ')');
+    $('#versions').hidden = !state.includeExtras;
+    variantsPresent.forEach(function (v) {
+      variantChips[v.id].input.checked = !state.excludedVariants.has(v.id);
+      variantChips[v.id].count.textContent = int.format(perVariant[v.id] || 0);
     });
     DATA.sets.forEach(function (s) {
       var r = setRows[s.id];
@@ -560,9 +632,9 @@
     if (missing) {
       box.appendChild(el('div', { class: 'muted small', text: plural(missing, 'card') + ' with no price data aren\'t counted in the total.' }));
     }
-    if (market >= 1000) {
+    if (market >= 10000) {
       box.appendChild(el('div', { class: 'notice' }, [
-        'That\'s a big cart. Promos, Showcase variants and signed or serial-numbered cards cost the most. Untick rarities or set a max price above to trim it.'
+        'That\'s a big cart. Promos, Showcase cards and Signature or serial-numbered versions cost the most. Untick rarities or versions, or set a max price, to trim it.'
       ]));
     }
   }
@@ -735,6 +807,9 @@
     maxPrice.value = state.maxPrice;
     maxPrice.addEventListener('input', function () { state.maxPrice = maxPrice.value; update(); });
 
+    var extrasBox = $('#include-extras');
+    extrasBox.addEventListener('change', function () { state.includeExtras = extrasBox.checked; update(); });
+
     var skip = $('#skip-unlisted');
     skip.checked = state.skipUnlisted;
     skip.addEventListener('change', function () { state.skipUnlisted = skip.checked; update(); });
@@ -790,6 +865,7 @@
 
   buildSets();
   buildRarities();
+  buildVariants();
   bindControls();
   footer();
   update();

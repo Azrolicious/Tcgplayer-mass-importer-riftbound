@@ -11,6 +11,7 @@ disk (file://), where browsers block fetch() of local files.
 """
 
 import json
+import re
 import sys
 import time
 import urllib.request
@@ -49,6 +50,65 @@ def is_single(product):
     return bool(ext(product, "Rarity") or ext(product, "Number"))
 
 
+TAG = re.compile(r"\(([^()]*)\)")
+ALT_RUNE = re.compile(r"^(?:[A-Z]|R\d+[a-z])$")  # "Fury Rune (A)", "Calm Rune (R02b)"
+STANDARD_TAGS = {"Starter"}  # Proving Grounds starter-deck printings are ordinary cards
+
+
+def variant_of(name):
+    """Sort a card into a version bucket using the tags TCGplayer puts in product names.
+
+    "standard"     no special tag
+    "alt-art"      (Alternate Art), alternate-art runes, (... Special Art ...), (Full Art)
+    "signature"    (Signature), (Heartsteel Signature)
+    "overnumbered" (Overnumbered), (Heartsteel Overnumbered)
+    "metal"        (Metal) prize cards
+    "other"        anything else special: Oversized, Top 8, Champion, serial-numbered, ...
+    """
+    tags = [t.strip() for t in TAG.findall(name)]
+    tags = [t for t in tags if t and not t.isdigit() and t not in STANDARD_TAGS]  # "(271)" is a number
+    if not tags:
+        return "standard"
+    if any(t == "Alternate Art" or ALT_RUNE.match(t) or "Special Art" in t or t == "Full Art" for t in tags):
+        return "alt-art"
+    if any(t.endswith("Signature") for t in tags):
+        return "signature"
+    if any(t.endswith("Overnumbered") for t in tags):
+        return "overnumbered"
+    if "Metal" in tags:
+        return "metal"
+    return "other"
+
+
+NUMBER = re.compile(r"^(\d+)/(\d+)$")  # "027/298"; not "027a/298", "299*/298", "R01", "T1A 001/005"
+
+
+def main_run(singles):
+    """Return the size D of the group's own numbered run (cards 1..D), or None.
+
+    A group owns "/D" only when those cards are most of the group and nearly every number
+    from 1 to D is present. Promo groups reuse other sets' numbers (an Organized Play promo
+    can be "246/298"), so they don't own a run and all their cards count as extras.
+    """
+    by_den = {}
+    for p in singles:
+        m = NUMBER.match(ext(p, "Number") or "")
+        if m:
+            by_den.setdefault(int(m.group(2)), []).append(int(m.group(1)))
+    if not by_den:
+        return None
+    den, nums = max(by_den.items(), key=lambda kv: len(kv[1]))
+    in_run = {n for n in nums if 1 <= n <= den}
+    if den > 0 and len(nums) >= 0.5 * len(singles) and len(in_run) >= 0.9 * den:
+        return den
+    return None
+
+
+def in_main_run(product, den):
+    m = NUMBER.match(ext(product, "Number") or "")
+    return bool(den and m and int(m.group(2)) == den and 1 <= int(m.group(1)) <= den)
+
+
 def min_price(rows, field):
     values = [r[field] for r in rows if r.get(field)]
     return round(min(values), 2) if values else None
@@ -76,11 +136,13 @@ def main():
         if not singles:
             continue  # sealed-only group (e.g. a bundle with no singles listed)
 
+        run = main_run(singles)
         sets.append({
             "id": gid,
             "name": group["name"],
             "code": group.get("abbreviation") or "",
             "released": (group.get("publishedOn") or "")[:10],
+            "mainSize": run,  # e.g. 298 for Origins; null for promo/bundle groups
         })
         for p in singles:
             rows = price_rows.get(p["productId"], [])
@@ -90,6 +152,8 @@ def main():
                 "name": p["name"],
                 "number": ext(p, "Number") or "",
                 "rarity": ext(p, "Rarity") or "None",
+                "variant": variant_of(p["name"]),
+                "main": in_main_run(p, run),  # one of the set's numbered cards (e.g. 001-298)
                 "type": ext(p, "Card Type") or "",
                 "printings": sorted({r["subTypeName"] for r in rows}),
                 "market": min_price(rows, "marketPrice"),
