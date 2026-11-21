@@ -118,7 +118,41 @@
 
   /* Set list */
   .set-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .set-list li + li { border-top: 1px solid var(--border); }
+  .set-list > li + li { border-top: 1px solid var(--border); }
+  .set-head { display: flex; align-items: stretch; }
+  .set-head .set-row { flex: 1; min-width: 0; }
+  .expand {
+    flex: none; width: 52px; min-height: 48px; padding: 0;
+    border: 0; border-left: 1px solid var(--border); border-radius: 0;
+    background: transparent; color: var(--muted);
+  }
+  .expand:hover { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+  .expand svg { transition: transform .15s ease; }
+  .expand[aria-expanded="true"] { color: var(--accent); }
+  .expand[aria-expanded="true"] svg { transform: rotate(90deg); }
+  .set-cards { border-top: 1px solid var(--border); background: var(--surface-2); padding: 10px 12px 12px; }
+  .set-cards-tools { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-bottom: 8px; }
+  .set-cards-tools input[type="search"] { flex: 1 1 180px; min-height: 40px; }
+  .set-cards-tools .btn.link { min-height: 40px; }
+  .set-cards-count { font-size: 0.85rem; color: var(--muted); margin-right: auto; }
+  .card-list {
+    list-style: none; margin: 0; padding: 0;
+    max-height: min(60vh, 420px); overflow-y: auto; overscroll-behavior: contain;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+  }
+  .card-list li + li { border-top: 1px solid var(--border); }
+  .card-row {
+    display: grid; grid-template-columns: 18px 5.2em 1fr auto; gap: 10px; align-items: center;
+    padding: 7px 10px; min-height: 42px; cursor: pointer; font-size: 0.9rem;
+  }
+  .card-row:hover { background: var(--surface-2); }
+  .card-row input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+  .card-num { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .card-name { min-width: 0; overflow-wrap: anywhere; }
+  .card-name .rar { color: var(--muted); font-size: 0.78rem; margin-left: 6px; }
+  .card-price { color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; text-align: right; }
+  .card-row.off .card-name { color: var(--muted); }
+  .card-empty { padding: 12px; color: var(--muted); font-size: 0.9rem; }
   .set-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; min-height: 48px; }
   .set-row:hover { background: var(--surface-2); }
   .set-row input { width: 20px; height: 20px; flex: none; accent-color: var(--accent); margin: 0; }
@@ -144,7 +178,7 @@
 
   .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
   .field label { display: block; font-weight: 600; margin-bottom: 6px; }
-  input[type="number"], input[type="text"], select {
+  input[type="number"], input[type="text"], input[type="search"], select {
     font: inherit; width: 100%; min-height: 44px; padding: 8px 10px;
     border-radius: 10px; border: 1px solid var(--border);
     background: var(--surface); color: var(--text);
@@ -202,14 +236,19 @@
 
   @media (max-width: 520px) {
     .fields { grid-template-columns: 1fr; }
-    .set-row { align-items: flex-start; }
+    .set-row { display: grid; grid-template-columns: 20px 1fr; column-gap: 12px; row-gap: 2px; align-items: start; }
     .set-row input { margin-top: 2px; }
     .set-name { display: flex; flex-direction: column; }
     .set-name .code { margin-left: 0; }
+    .set-meta { grid-column: 2; text-align: left; white-space: normal; }
     .batch-toolbar .field { width: 100%; }
     .batch-actions .btn, .batch-actions button { flex: 1 1 auto; }
     .batch-actions .check { margin-left: 0; width: 100%; }
     .versions { margin-left: 0; }
+    .expand { width: 44px; }
+    .set-cards { padding: 10px 8px 10px; }
+    .card-row { grid-template-columns: 18px 4.6em 1fr auto; gap: 8px; padding: 7px 8px; }
+    .card-name .rar { display: block; margin-left: 0; }
   }
 </style>
 </head>
@@ -419,6 +458,7 @@
   var saved = load('settings', {}) || {};
   var state = {
     excludedSets: new Set(saved.excludedSets || []),
+    excludedCards: new Set(saved.excludedCards || []), // product ids unticked one by one
     excludedRarities: new Set(saved.excludedRarities || []),
     excludedVariants: new Set(Array.isArray(saved.excludedVariants) ? saved.excludedVariants : DEFAULT_EXCLUDED_VARIANTS),
     includeExtras: saved.includeExtras === true,
@@ -434,6 +474,7 @@
   function persist() {
     save('settings', {
       excludedSets: Array.from(state.excludedSets),
+      excludedCards: Array.from(state.excludedCards),
       excludedRarities: Array.from(state.excludedRarities),
       excludedVariants: Array.from(state.excludedVariants),
       includeExtras: state.includeExtras,
@@ -458,6 +499,7 @@
     var n = parseFloat(state.maxPrice);
     return isNaN(n) || n < 0 ? null : n;
   }
+  function isPicked(c) { return !state.excludedSets.has(c.set) && !state.excludedCards.has(c.id); }
   function passesPrice(c) {
     var max = maxPriceValue();
     if (max == null) return true;
@@ -466,9 +508,10 @@
   }
   // `ignore` names one filter to leave out, so each filter's counts show what ticking it would add.
   // Versions only apply once extras are on; every numbered set card is a standard version anyway.
+  // 'set' ignores both the set checkbox and per-card picks, giving the cards a set's list can show.
   function passes(c, ignore) {
     var extrasOn = state.includeExtras || ignore === 'main'; // the Extras count pretends the box is ticked
-    return (ignore === 'set' || !state.excludedSets.has(c.set)) &&
+    return (ignore === 'set' || isPicked(c)) &&
       (ignore === 'rarity' || !state.excludedRarities.has(c.rarity)) &&
       (extrasOn || isMain(c)) &&
       (ignore === 'variant' || !extrasOn || !state.excludedVariants.has(variantOf(c))) &&
@@ -505,30 +548,135 @@
 
   // ---- sets ----
   var setRows = {};
+  var cardsBySet = {};
+  cards.forEach(function (c) { (cardsBySet[c.set] = cardsBySet[c.set] || []).push(c); });
+  function setCards(id) { return cardsBySet[id] || []; }
+
+  // Whole-set and single-card picks. The set checkbox always means "whole set" or "nothing";
+  // ticking one card in a cleared set turns the set back on with only that card.
+  function selectWholeSet(id) {
+    state.excludedSets.delete(id);
+    setCards(id).forEach(function (c) { state.excludedCards.delete(c.id); });
+  }
+  function clearWholeSet(id) {
+    state.excludedSets.add(id);
+    setCards(id).forEach(function (c) { state.excludedCards.delete(c.id); });
+  }
+  function pickCard(c, on) {
+    if (!on) { state.excludedCards.add(c.id); return; }
+    if (state.excludedSets.has(c.set)) {
+      state.excludedSets.delete(c.set);
+      setCards(c.set).forEach(function (x) { if (x.id !== c.id) state.excludedCards.add(x.id); });
+    }
+    state.excludedCards.delete(c.id);
+  }
+
+  var CHEVRON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+
   function buildSets() {
     var list = $('#set-list');
     DATA.sets.forEach(function (s) {
-      var input = el('input', { type: 'checkbox', id: 'set-' + s.id });
-      input.addEventListener('change', function () {
-        if (input.checked) state.excludedSets.delete(s.id); else state.excludedSets.add(s.id);
+      var r = { status: 'all', open: false, listKey: null, inputs: {}, rows: [] };
+      setRows[s.id] = r;
+
+      r.input = el('input', { type: 'checkbox', id: 'set-' + s.id });
+      r.input.addEventListener('change', function () {
+        if (r.status === 'all') clearWholeSet(s.id); else selectWholeSet(s.id); // partly picked -> whole set
         update();
       });
-      var meta = el('span', { class: 'set-meta num' });
-      var row = el('label', { class: 'set-row', for: 'set-' + s.id }, [
-        input,
+      r.meta = el('span', { class: 'set-meta num' });
+      r.row = el('label', { class: 'set-row', for: 'set-' + s.id }, [
+        r.input,
         el('span', { class: 'set-name' }, [s.name, el('span', { class: 'code', text: s.code + ' · ' + runLabel(s) })]),
-        meta
+        r.meta
       ]);
-      list.appendChild(el('li', null, [row]));
-      setRows[s.id] = { input: input, meta: meta, row: row };
+
+      var panelId = 'set-cards-' + s.id;
+      r.expand = el('button', {
+        type: 'button', class: 'expand', 'aria-expanded': 'false', 'aria-controls': panelId,
+        'aria-label': 'Pick individual cards in ' + s.name, title: 'Pick individual cards'
+      });
+      r.expand.innerHTML = CHEVRON;
+
+      r.count = el('span', { class: 'set-cards-count num' });
+      r.search = el('input', { type: 'search', placeholder: 'Find a card by name or number', 'aria-label': 'Find a card in ' + s.name });
+      r.search.addEventListener('input', function () { filterCardList(r); });
+      var allBtn = el('button', { type: 'button', class: 'btn link' }, ['All']);
+      allBtn.addEventListener('click', function () { selectWholeSet(s.id); update(); });
+      var noneBtn = el('button', { type: 'button', class: 'btn link' }, ['None']);
+      noneBtn.addEventListener('click', function () { clearWholeSet(s.id); update(); });
+      r.list = el('ul', { class: 'card-list' });
+      r.empty = el('div', { class: 'card-empty', hidden: true });
+      r.panel = el('div', { class: 'set-cards', id: panelId, hidden: true }, [
+        el('div', { class: 'set-cards-tools' }, [r.count, allBtn, noneBtn, r.search]),
+        r.list, r.empty
+      ]);
+
+      r.expand.addEventListener('click', function () {
+        r.open = !r.open;
+        r.expand.setAttribute('aria-expanded', String(r.open));
+        r.panel.hidden = !r.open;
+        if (r.open) syncCardList(s);
+      });
+
+      list.appendChild(el('li', null, [el('div', { class: 'set-head' }, [r.row, r.expand]), r.panel]));
     });
     document.querySelectorAll('[data-sets]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var all = btn.getAttribute('data-sets') === 'all';
-        DATA.sets.forEach(function (s) { if (all) state.excludedSets.delete(s.id); else state.excludedSets.add(s.id); });
+        DATA.sets.forEach(function (s) { if (all) selectWholeSet(s.id); else clearWholeSet(s.id); });
         update();
       });
     });
+  }
+
+  // Rebuild a set's card list only when the cards it shows change, so ticking a card never
+  // re-creates the checkbox under the user's finger.
+  function syncCardList(s) {
+    var r = setRows[s.id];
+    var avail = setCards(s.id).filter(function (c) { return passes(c, 'set'); });
+    var key = avail.map(function (c) { return c.id; }).join(',');
+    if (key !== r.listKey) {
+      r.listKey = key;
+      r.list.textContent = '';
+      r.inputs = {};
+      r.rows = [];
+      avail.forEach(function (c) {
+        var input = el('input', { type: 'checkbox' });
+        input.addEventListener('change', function () { pickCard(c, input.checked); update(); });
+        var p = priceOf(c);
+        var label = el('label', { class: 'card-row' }, [
+          input,
+          el('span', { class: 'card-num', text: c.number || '—' }),
+          el('span', { class: 'card-name' }, [c.name, el('span', { class: 'rar', text: RARITY_LABEL[c.rarity] || c.rarity })]),
+          el('span', { class: 'card-price', text: p == null ? '—' : money2.format(p) })
+        ]);
+        var li = el('li', null, [label]);
+        r.list.appendChild(li);
+        r.inputs[c.id] = { input: input, label: label };
+        r.rows.push({ li: li, text: ((c.number || '') + ' ' + c.name).toLowerCase() });
+      });
+      filterCardList(r);
+    }
+    var picked = 0;
+    avail.forEach(function (c) {
+      var on = isPicked(c);
+      if (on) picked++;
+      r.inputs[c.id].input.checked = on;
+      r.inputs[c.id].label.classList.toggle('off', !on);
+    });
+    r.count.textContent = int.format(picked) + ' of ' + int.format(avail.length) + ' picked';
+    r.list.hidden = !avail.length;
+    r.empty.hidden = !!avail.length;
+    r.empty.textContent = s.mainSize || state.includeExtras
+      ? 'No cards in this set match your other filters.'
+      : 'This set only has extras. Tick Extras below to see its cards.';
+  }
+
+  function filterCardList(r) {
+    var q = r.search.value.trim().toLowerCase();
+    r.rows.forEach(function (row) { row.li.hidden = !!q && row.text.indexOf(q) === -1; });
   }
 
   // ---- rarities ----
@@ -573,9 +721,10 @@
       if (c.low == null && passes(c, 'listing')) unlisted++;
       if (!isMain(c) && passes(c, 'main')) extras++;
       if (passes(c, 'set')) {
-        var ps = perSet[c.set] || (perSet[c.set] = { n: 0, cost: 0 });
+        var ps = perSet[c.set] || (perSet[c.set] = { n: 0, cost: 0, picked: 0, pickedCost: 0 });
         ps.n++;
         ps.cost += priceOf(c) || 0;
+        if (isPicked(c)) { ps.picked++; ps.pickedCost += priceOf(c) || 0; }
       }
       if (passes(c, 'rarity')) perRarity[c.rarity] = (perRarity[c.rarity] || 0) + 1;
       if (passes(c, 'variant')) perVariant[variantOf(c)] = (perVariant[variantOf(c)] || 0) + 1;
@@ -589,11 +738,17 @@
     });
     DATA.sets.forEach(function (s) {
       var r = setRows[s.id];
-      var on = !state.excludedSets.has(s.id);
-      var info = perSet[s.id] || { n: 0, cost: 0 };
-      r.input.checked = on;
-      r.row.classList.toggle('off', !on);
-      r.meta.textContent = plural(info.n, 'card') + ' · ' + money(info.cost * state.qty);
+      var info = perSet[s.id] || { n: 0, cost: 0, picked: 0, pickedCost: 0 };
+      if (state.excludedSets.has(s.id)) r.status = 'none';
+      else if (!info.n || info.picked === info.n) r.status = 'all';
+      else r.status = info.picked ? 'some' : 'none';
+      r.input.checked = r.status === 'all';
+      r.input.indeterminate = r.status === 'some';
+      r.row.classList.toggle('off', r.status === 'none');
+      r.meta.textContent = r.status === 'some'
+        ? int.format(info.picked) + ' of ' + plural(info.n, 'card') + ' · ' + money(info.pickedCost * state.qty)
+        : plural(info.n, 'card') + ' · ' + money(info.cost * state.qty);
+      if (r.open) syncCardList(s);
     });
     rarities.forEach(function (r) {
       rarityChips[r].input.checked = !state.excludedRarities.has(r);

@@ -33,6 +33,10 @@ double-click `index.html`. Keep the `data` folder next to it.
    those numbered lists. A **Versions** row then lets you pick which kinds; *Alternate Art*
    stays off unless you tick it. Each set shows its card count and estimated cost. You can
    also set copies per card and a max price per card.
+
+   To hand-pick cards, tap the **›** arrow on a set. Its cards open in a searchable list with
+   a checkbox for each one. The set's own checkbox still selects or clears the whole set, and
+   shows a dash when only some of its cards are picked.
 2. **Send to TCGplayer.** The cards are split into batches (100 by default). Tap
    **Open in TCGplayer** on a batch. Mass Entry opens with those cards already filled in.
 3. In TCGplayer's **Item Options** popup, keep the printings and conditions you want and
