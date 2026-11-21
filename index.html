@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Riftbound Mass Entry</title>
+<meta name="description" content="Send every Riftbound card to your TCGplayer cart in batches using TCGplayer Mass Entry.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0b1720">
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface-2: #eef2f5;
+    --text: #13202b;
+    --muted: #5a6b7a;
+    --border: #d6dee5;
+    --accent: #0b7a6f;
+    --accent-hover: #09665d;
+    --accent-text: #ffffff;
+    --accent-soft: #dff3f0;
+    --gold: #9a6b00;
+    --done: #2f7d32;
+    --done-soft: #e3f3e4;
+    --warn-soft: #fff4db;
+    --warn-border: #e6c26a;
+    --focus: #1d74d8;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b1720;
+      --surface: #12212c;
+      --surface-2: #182b38;
+      --text: #e6eef4;
+      --muted: #97a9b8;
+      --border: #26394a;
+      --accent: #2cc4b2;
+      --accent-hover: #4fd6c6;
+      --accent-text: #04201c;
+      --accent-soft: #123b39;
+      --gold: #e2b65a;
+      --done: #6fcf73;
+      --done-soft: #16301b;
+      --warn-soft: #2e2611;
+      --warn-border: #7a6223;
+      --focus: #6aa9ff;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b1720;
+    --surface: #12212c;
+    --surface-2: #182b38;
+    --text: #e6eef4;
+    --muted: #97a9b8;
+    --border: #26394a;
+    --accent: #2cc4b2;
+    --accent-hover: #4fd6c6;
+    --accent-text: #04201c;
+    --accent-soft: #123b39;
+    --gold: #e2b65a;
+    --done: #6fcf73;
+    --done-soft: #16301b;
+    --warn-soft: #2e2611;
+    --warn-border: #7a6223;
+    --focus: #6aa9ff;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+  header.top { padding: 28px 0 8px; }
+  header.top h1 { margin: 0; font-size: 1.6rem; line-height: 1.2; letter-spacing: -0.01em; }
+  header.top p { margin: 6px 0 0; color: var(--muted); }
+  main { display: grid; gap: 16px; padding: 16px 0 24px; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 16px;
+  }
+  .panel h2 { margin: 0 0 12px; font-size: 1.15rem; }
+  .step {
+    display: inline-grid; place-items: center;
+    width: 1.6em; height: 1.6em; margin-right: 8px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent); font-size: 0.85em; vertical-align: 0.1em;
+  }
+  fieldset { border: 0; margin: 0 0 18px; padding: 0; min-width: 0; }
+  legend { font-weight: 600; padding: 0; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; width: 100%; }
+  legend .spacer { flex: 1; }
+  .muted { color: var(--muted); }
+  .small { font-size: 0.875rem; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  button, .btn {
+    font: inherit;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 40px; padding: 8px 14px;
+    border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--text);
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+  }
+  button:hover, .btn:hover { border-color: var(--muted); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+  .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn.link { background: none; border: 0; padding: 4px 6px; min-height: 0; color: var(--accent); text-decoration: underline; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  /* Set list */
+  .set-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .set-list li + li { border-top: 1px solid var(--border); }
+  .set-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; min-height: 48px; }
+  .set-row:hover { background: var(--surface-2); }
+  .set-row input { width: 20px; height: 20px; flex: none; accent-color: var(--accent); margin: 0; }
+  .set-name { flex: 1; min-width: 0; }
+  .set-name .code { color: var(--muted); font-size: 0.8rem; margin-left: 4px; }
+  .set-meta { text-align: right; font-size: 0.875rem; color: var(--muted); white-space: nowrap; }
+  .set-row.off .set-name { color: var(--muted); }
+
+  /* Rarity chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    min-height: 40px; padding: 6px 12px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: var(--surface-2); cursor: pointer; user-select: none;
+  }
+  .chip input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+  .chip:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); }
+  .chip .count { color: var(--muted); font-size: 0.8rem; }
+
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .field label { display: block; font-weight: 600; margin-bottom: 6px; }
+  input[type="number"], input[type="text"], select {
+    font: inherit; width: 100%; min-height: 44px; padding: 8px 10px;
+    border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+  }
+  .check { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+  .check input { width: 20px; height: 20px; margin: 2px 0 0; flex: none; accent-color: var(--accent); }
+
+  /* Summary */
+  .summary { display: grid; gap: 6px; }
+  .summary .big { font-size: 1.5rem; font-weight: 700; line-height: 1.25; }
+  .summary .cost { font-size: 1.1rem; }
+  .summary .cost strong { color: var(--gold); }
+  .notice {
+    background: var(--warn-soft); border: 1px solid var(--warn-border);
+    border-radius: 10px; padding: 10px 12px; font-size: 0.9rem;
+  }
+
+  /* Batches */
+  .batch-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-bottom: 14px; }
+  .batch-toolbar .field { width: 170px; }
+  .batch-toolbar .progress { flex: 1; min-width: 160px; }
+  .bar { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 6px; border: 1px solid var(--border); }
+  .bar > span { display: block; height: 100%; width: 0; background: var(--done); transition: width .2s; }
+  .batch-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .batch { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--surface); }
+  .batch.done { background: var(--done-soft); border-color: var(--done); }
+  .batch-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .batch-title { font-weight: 700; }
+  .batch-status { margin-left: auto; font-size: 0.85rem; color: var(--done); font-weight: 600; }
+  .batch-meta { font-size: 0.875rem; color: var(--muted); margin: 2px 0 10px; }
+  .batch-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .batch-actions .check { margin-left: auto; align-items: center; min-height: 40px; }
+  .batch-actions .check input { margin: 0; }
+  details.cards-detail { margin-top: 8px; }
+  details.cards-detail summary { cursor: pointer; color: var(--accent); font-size: 0.9rem; padding: 4px 0; }
+  .table-wrap { overflow-x: auto; margin-top: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  td.r, th.r { text-align: right; }
+  td a { color: inherit; }
+  .empty { text-align: center; padding: 18px; color: var(--muted); border: 1px dashed var(--border); border-radius: 12px; }
+
+  .help ol, .help ul { margin: 0 0 12px; padding-left: 22px; }
+  .help li { margin-bottom: 6px; }
+  .help h3 { font-size: 1rem; margin: 14px 0 6px; }
+  details.panel > summary { cursor: pointer; font-weight: 600; }
+  details.panel[open] > summary { margin-bottom: 12px; }
+  .inline { display: flex; gap: 8px; }
+  .inline input { flex: 1; min-width: 0; }
+
+  footer { padding: 8px 0 32px; color: var(--muted); font-size: 0.8rem; }
+  footer a { color: inherit; }
+  .error-box { margin: 24px 0; }
+
+  @media (max-width: 520px) {
+    .fields { grid-template-columns: 1fr; }
+    .set-row { align-items: flex-start; }
+    .set-row input { margin-top: 2px; }
+    .set-name { display: flex; flex-direction: column; }
+    .set-name .code { margin-left: 0; }
+    .batch-toolbar .field { width: 100%; }
+    .batch-actions .btn, .batch-actions button { flex: 1 1 auto; }
+    .batch-actions .check { margin-left: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Riftbound Mass Entry</h1>
+    <p>Fill a TCGplayer cart with every Riftbound card, from every set, a batch at a time.</p>
+  </header>
+
+  <div id="app-error" class="panel notice error-box" hidden>
+    Card data didn't load. Make sure <code>data/riftbound-cards.js</code> sits next to this page,
+    or run <code>python3 scripts/update_data.py</code> to create it.
+  </div>
+
+  <main id="app" hidden>
+    <section class="panel" aria-labelledby="choose-h">
+      <h2 id="choose-h"><span class="step">1</span>Choose cards</h2>
+
+      <fieldset>
+        <legend>
+          Sets
+          <span class="spacer"></span>
+          <button type="button" class="btn link" data-sets="all">All</button>
+          <button type="button" class="btn link" data-sets="none">None</button>
+        </legend>
+        <ul id="set-list" class="set-list"></ul>
+      </fieldset>
+
+      <fieldset>
+        <legend>Rarities</legend>
+        <div id="rarity-list" class="chips"></div>
+      </fieldset>
+
+      <div class="fields">
+        <div class="field">
+          <label for="qty">Copies of each card</label>
+          <input id="qty" type="number" inputmode="numeric" min="1" max="99" step="1" value="1">
+        </div>
+        <div class="field">
+          <label for="max-price">Max price per card ($)</label>
+          <input id="max-price" type="number" inputmode="decimal" min="0" step="0.01" placeholder="No limit">
+        </div>
+      </div>
+
+      <label class="check">
+        <input id="skip-unlisted" type="checkbox" checked>
+        <span>Skip cards nobody is selling right now <span id="unlisted-count" class="muted small"></span><br>
+        <span class="muted small">TCGplayer can't add them, and one unfillable line can stop a whole batch.</span></span>
+      </label>
+    </section>
+
+    <section class="panel summary" aria-live="polite" id="summary"></section>
+
+    <section class="panel" aria-labelledby="send-h">
+      <h2 id="send-h"><span class="step">2</span>Send to TCGplayer</h2>
+      <div class="batch-toolbar">
+        <div class="field">
+          <label for="batch-size">Cards per batch</label>
+          <select id="batch-size">
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+        </div>
+        <div class="progress">
+          <div id="progress-text" class="small"></div>
+          <div class="bar" aria-hidden="true"><span id="progress-bar"></span></div>
+        </div>
+        <button type="button" id="reset-progress">Clear checkmarks</button>
+      </div>
+      <ol id="batch-list" class="batch-list"></ol>
+    </section>
+
+    <section class="panel help" aria-labelledby="help-h">
+      <h2 id="help-h">How it works</h2>
+      <ol>
+        <li>Press <strong>Open in TCGplayer</strong> on a batch. TCGplayer's Mass Entry page opens in a new tab with those cards already filled in.</li>
+        <li>In the <strong>Item Options</strong> popup, keep the printings and conditions you want, then press <strong>Add to Cart</strong>. TCGplayer picks the cheapest sellers for you.</li>
+        <li>Come back here and open the next batch. Every batch goes into the same cart. Opened batches get a checkmark, so you can stop and pick up later on the same device.</li>
+      </ol>
+      <h3>If something goes wrong</h3>
+      <ul>
+        <li><strong>Some lines turn red</strong> ("could not be found" or "not enough quantity"): listings change all the time. Delete the red lines on the TCGplayer page and press Add to Cart again.</li>
+        <li><strong>"Your cart is full"</strong>: TCGplayer caps cart size. Check out (or save for later) what you have, then carry on with the next unchecked batch.</li>
+        <li><strong>The popup shows no printings, or no game is selected</strong>: press <em>Edit Items</em>, pick <em>Riftbound: League of Legends Trading Card Game</em> under Select Product Line, then Add to Cart. If it happens every time, see <em>Advanced</em> below.</li>
+        <li><strong>Rares and up are foil-only in Riftbound.</strong> If you untick Foil in Item Options, those cards will fail.</li>
+        <li><strong>On Android</strong>, if the TCGplayer app opens instead of the website and nothing is filled in, long-press the button and choose <em>Open in new tab</em>.</li>
+      </ul>
+      <p class="muted small">Prices here are TCGplayer market prices from the last data refresh. Your real total depends on which sellers TCGplayer picks, plus shipping.</p>
+    </section>
+
+    <details class="panel">
+      <summary>Advanced</summary>
+      <div class="field">
+        <label for="product-line">TCGplayer product line name</label>
+        <div class="inline">
+          <input id="product-line" type="text" autocomplete="off" spellcheck="false">
+          <button type="button" id="product-line-reset">Reset</button>
+        </div>
+        <p class="muted small">Sent as <code>productline=</code> so Mass Entry selects Riftbound for you. Change it only if TCGplayer stops picking Riftbound automatically.</p>
+      </div>
+      <div class="field">
+        <label for="entry-format">Line format</label>
+        <select id="entry-format">
+          <option value="id">Product ID: 1-652771 (exact)</option>
+          <option value="name">Name and set code: 1 Blazing Scorcher [OGN]</option>
+        </select>
+        <p class="muted small">Product IDs pin down the exact printing. Switch to names and set codes if TCGplayer ever rejects the ID lines. Card names are unique within each set, so both pick the same card.</p>
+      </div>
+    </details>
+  </main>
+
+  <footer id="footer"></footer>
+</div>
+
+<script src="data/riftbound-cards.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var DATA = window.RIFTBOUND_DATA;
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  if (!DATA || !Array.isArray(DATA.cards) || !Array.isArray(DATA.sets)) {
+    $('#app-error').hidden = false;
+    return;
+  }
+  $('#app').hidden = false;
+
+  var MASS_ENTRY_URL = 'https://www.tcgplayer.com/massentry';
+  var BATCH_SIZES = [25, 50, 100, 200];
+  var RARITY_ORDER = ['Common', 'Uncommon', 'Rare', 'Epic', 'Showcase', 'Promo', 'None'];
+  var RARITY_LABEL = { None: 'Tokens & other' };
+
+  // ---- storage (per-device convenience only; the page works without it) ----
+  var STORE_PREFIX = 'riftbound-mass-entry:v1:';
+  function load(key, fallback) {
+    try {
+      var raw = window.localStorage.getItem(STORE_PREFIX + key);
+      return raw == null ? fallback : JSON.parse(raw);
+    } catch (e) { return fallback; }
+  }
+  function save(key, value) {
+    try { window.localStorage.setItem(STORE_PREFIX + key, JSON.stringify(value)); } catch (e) { /* ignore */ }
+  }
+
+  // ---- data prep ----
+  var collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
+  var setIndex = {};
+  var setById = {};
+  DATA.sets.forEach(function (s, i) { setIndex[s.id] = i; setById[s.id] = s; });
+
+  var cards = DATA.cards.slice().sort(function (a, b) {
+    return (setIndex[a.set] - setIndex[b.set]) ||
+      collator.compare(a.number || '', b.number || '') ||
+      collator.compare(a.name, b.name);
+  });
+
+  function rarityRank(r) {
+    var i = RARITY_ORDER.indexOf(r);
+    return i === -1 ? RARITY_ORDER.length - 1.5 : i; // unknown rarities sort just before "None"
+  }
+  var rarities = [];
+  cards.forEach(function (c) { if (rarities.indexOf(c.rarity) === -1) rarities.push(c.rarity); });
+  rarities.sort(function (a, b) { return rarityRank(a) - rarityRank(b) || collator.compare(a, b); });
+
+  function priceOf(c) { return c.market != null ? c.market : c.low; }
+
+  // ---- state ----
+  // Exclusions are stored (not inclusions) so sets added by a later data refresh start out selected.
+  var saved = load('settings', {}) || {};
+  var state = {
+    excludedSets: new Set(saved.excludedSets || []),
+    excludedRarities: new Set(saved.excludedRarities || []),
+    qty: clampInt(saved.qty, 1, 99, 1),
+    maxPrice: typeof saved.maxPrice === 'string' ? saved.maxPrice : '',
+    skipUnlisted: saved.skipUnlisted !== false,
+    batchSize: BATCH_SIZES.indexOf(saved.batchSize) !== -1 ? saved.batchSize : 100,
+    productLine: saved.productLine || DATA.productLine.name,
+    format: saved.format === 'name' ? 'name' : 'id'
+  };
+  var done = new Set(load('done', []) || []);
+
+  function persist() {
+    save('settings', {
+      excludedSets: Array.from(state.excludedSets),
+      excludedRarities: Array.from(state.excludedRarities),
+      qty: state.qty,
+      maxPrice: state.maxPrice,
+      skipUnlisted: state.skipUnlisted,
+      batchSize: state.batchSize,
+      productLine: state.productLine,
+      format: state.format
+    });
+  }
+  function persistDone() { save('done', Array.from(done)); }
+
+  function clampInt(v, min, max, fallback) {
+    var n = parseInt(v, 10);
+    if (isNaN(n)) return fallback;
+    return Math.min(max, Math.max(min, n));
+  }
+
+  // ---- filtering ----
+  function maxPriceValue() {
+    var n = parseFloat(state.maxPrice);
+    return isNaN(n) || n < 0 ? null : n;
+  }
+  function passesPriceAndListing(c) {
+    if (state.skipUnlisted && c.low == null) return false;
+    var max = maxPriceValue();
+    if (max != null) {
+      var p = priceOf(c);
+      if (p == null || p > max) return false;
+    }
+    return true;
+  }
+  function selectedCards() {
+    return cards.filter(function (c) {
+      return !state.excludedSets.has(c.set) &&
+        !state.excludedRarities.has(c.rarity) &&
+        passesPriceAndListing(c);
+    });
+  }
+
+  // ---- formatting ----
+  var money2 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  var money0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  var int = new Intl.NumberFormat('en-US');
+  function money(n) { return n >= 1000 ? money0.format(n) : money2.format(n); }
+  function plural(n, one, many) { return int.format(n) + ' ' + (n === 1 ? one : (many || one + 's')); }
+
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v == null || v === false) return;
+      if (k === 'class') node.className = v;
+      else if (k === 'text') node.textContent = v;
+      else if (k.slice(0, 2) === 'on') node.addEventListener(k.slice(2), v);
+      else node.setAttribute(k, v === true ? '' : v);
+    });
+    (children || []).forEach(function (ch) {
+      if (ch == null) return;
+      node.appendChild(typeof ch === 'string' ? document.createTextNode(ch) : ch);
+    });
+    return node;
+  }
+
+  // ---- sets ----
+  var setRows = {};
+  function buildSets() {
+    var list = $('#set-list');
+    DATA.sets.forEach(function (s) {
+      var input = el('input', { type: 'checkbox', id: 'set-' + s.id });
+      input.addEventListener('change', function () {
+        if (input.checked) state.excludedSets.delete(s.id); else state.excludedSets.add(s.id);
+        update();
+      });
+      var meta = el('span', { class: 'set-meta num' });
+      var row = el('label', { class: 'set-row', for: 'set-' + s.id }, [
+        input,
+        el('span', { class: 'set-name' }, [s.name, el('span', { class: 'code', text: s.code })]),
+        meta
+      ]);
+      list.appendChild(el('li', null, [row]));
+      setRows[s.id] = { input: input, meta: meta, row: row };
+    });
+    document.querySelectorAll('[data-sets]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var all = btn.getAttribute('data-sets') === 'all';
+        DATA.sets.forEach(function (s) { if (all) state.excludedSets.delete(s.id); else state.excludedSets.add(s.id); });
+        update();
+      });
+    });
+  }
+
+  // ---- rarities ----
+  var rarityChips = {};
+  function buildRarities() {
+    var wrap = $('#rarity-list');
+    rarities.forEach(function (r) {
+      var input = el('input', { type: 'checkbox' });
+      input.addEventListener('change', function () {
+        if (input.checked) state.excludedRarities.delete(r); else state.excludedRarities.add(r);
+        update();
+      });
+      var count = el('span', { class: 'count num' });
+      wrap.appendChild(el('label', { class: 'chip' }, [input, RARITY_LABEL[r] || r, count]));
+      rarityChips[r] = { input: input, count: count };
+    });
+  }
+
+  function updateFilters() {
+    var perSet = {};
+    var perRarity = {};
+    var unlisted = 0;
+    cards.forEach(function (c) {
+      if (c.low == null && !state.excludedSets.has(c.set) && !state.excludedRarities.has(c.rarity)) unlisted++;
+      if (!passesPriceAndListing(c)) return;
+      if (!state.excludedRarities.has(c.rarity)) {
+        var ps = perSet[c.set] || (perSet[c.set] = { n: 0, cost: 0 });
+        ps.n++;
+        ps.cost += priceOf(c) || 0;
+      }
+      if (!state.excludedSets.has(c.set)) perRarity[c.rarity] = (perRarity[c.rarity] || 0) + 1;
+    });
+    DATA.sets.forEach(function (s) {
+      var r = setRows[s.id];
+      var on = !state.excludedSets.has(s.id);
+      var info = perSet[s.id] || { n: 0, cost: 0 };
+      r.input.checked = on;
+      r.row.classList.toggle('off', !on);
+      r.meta.textContent = plural(info.n, 'card') + ' · ' + money(info.cost * state.qty);
+    });
+    rarities.forEach(function (r) {
+      rarityChips[r].input.checked = !state.excludedRarities.has(r);
+      rarityChips[r].count.textContent = int.format(perRarity[r] || 0);
+    });
+    $('#unlisted-count').textContent = '(' + int.format(unlisted) + ' in your selection)';
+  }
+
+  // ---- summary ----
+  function updateSummary(sel, batches) {
+    var market = 0, low = 0, missing = 0;
+    sel.forEach(function (c) {
+      var p = priceOf(c);
+      if (p == null) missing++; else market += p;
+      if (c.low != null) low += c.low;
+    });
+    market *= state.qty;
+    low *= state.qty;
+    var box = $('#summary');
+    box.textContent = '';
+    if (!sel.length) {
+      box.appendChild(el('div', { class: 'big', text: 'No cards selected' }));
+      box.appendChild(el('div', { class: 'muted', text: 'Pick at least one set and one rarity.' }));
+      return;
+    }
+    var copies = sel.length * state.qty;
+    box.appendChild(el('div', { class: 'big num' }, [
+      plural(sel.length, 'card'),
+      state.qty > 1 ? ' × ' + state.qty + ' = ' + plural(copies, 'copy', 'copies') : '',
+      ' in ' + plural(batches.length, 'batch', 'batches')
+    ]));
+    box.appendChild(el('div', { class: 'cost num' }, [
+      'About ', el('strong', { text: money(market) }), ' at market price',
+      el('span', { class: 'muted', text: ' · ' + money(low) + ' at lowest listings' })
+    ]));
+    if (missing) {
+      box.appendChild(el('div', { class: 'muted small', text: plural(missing, 'card') + ' with no price data aren\'t counted in the total.' }));
+    }
+    if (market >= 1000) {
+      box.appendChild(el('div', { class: 'notice' }, [
+        'That\'s a big cart. Promos, Showcase variants and signed or serial-numbered cards cost the most. Untick rarities or set a max price above to trim it.'
+      ]));
+    }
+  }
+
+  // ---- batches ----
+  function hash(str) { // FNV-1a, enough to tell batches apart
+    var h = 0x811c9dc5;
+    for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+    return (h >>> 0).toString(36);
+  }
+  function makeBatches(sel) {
+    var out = [];
+    for (var i = 0; i < sel.length; i += state.batchSize) {
+      var chunk = sel.slice(i, i + state.batchSize);
+      var ids = chunk.map(function (c) { return c.id; }).join(',');
+      out.push({ cards: chunk, key: hash(state.qty + ':' + ids) + '-' + chunk.length });
+    }
+    return out;
+  }
+  // Mass Entry accepts "quantity-productId" and "quantity Name [SETCODE]" lines.
+  function entryLine(c) {
+    if (state.format === 'name') {
+      var code = setById[c.set] && setById[c.set].code;
+      return state.qty + ' ' + c.name + (code ? ' [' + code + ']' : '');
+    }
+    return state.qty + '-' + c.id;
+  }
+  function massEntryUrl(batch) {
+    // Same shape as the "shareable link" TCGplayer's own Mass Entry page generates.
+    var c = batch.cards.map(function (card) { return encodeURIComponent(entryLine(card)); }).join('||');
+    return MASS_ENTRY_URL + '?c=' + c + '&productline=' + encodeURIComponent(state.productLine);
+  }
+  function setCodesIn(batch) {
+    var codes = [];
+    batch.cards.forEach(function (c) {
+      var code = (setById[c.set] && setById[c.set].code) || '?';
+      if (codes.indexOf(code) === -1) codes.push(code);
+    });
+    return codes.length > 4 ? codes.slice(0, 4).join(', ') + ' +' + (codes.length - 4) : codes.join(', ');
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacyCopy(text); });
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+  function legacyCopy(text) {
+    var ta = el('textarea', { readonly: true, style: 'position:fixed;top:0;left:0;opacity:0' });
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    ta.remove();
+    return ok;
+  }
+
+  function cardTable(batch) {
+    var tbody = el('tbody');
+    batch.cards.forEach(function (c) {
+      var p = priceOf(c);
+      tbody.appendChild(el('tr', null, [
+        el('td', { text: (setById[c.set] && setById[c.set].code) || '' }),
+        el('td', { class: 'num', text: c.number || '—' }),
+        el('td', null, [el('a', { href: 'https://www.tcgplayer.com/product/' + c.id, target: '_blank', rel: 'noopener', text: c.name })]),
+        el('td', { text: RARITY_LABEL[c.rarity] || c.rarity }),
+        el('td', { class: 'r num', text: p == null ? '—' : money2.format(p) })
+      ]));
+    });
+    return el('div', { class: 'table-wrap' }, [el('table', null, [
+      el('thead', null, [el('tr', null, [
+        el('th', { text: 'Set' }), el('th', { text: '#' }), el('th', { text: 'Name' }),
+        el('th', { text: 'Rarity' }), el('th', { class: 'r', text: 'Market' })
+      ])]),
+      tbody
+    ])]);
+  }
+
+  var currentBatches = [];
+  function renderBatches(batches) {
+    currentBatches = batches;
+    var list = $('#batch-list');
+    list.textContent = '';
+    if (!batches.length) {
+      list.appendChild(el('li', { class: 'empty', text: 'Nothing to send yet.' }));
+      updateProgress();
+      return;
+    }
+    batches.forEach(function (batch, i) {
+      var cost = 0;
+      batch.cards.forEach(function (c) { cost += priceOf(c) || 0; });
+      var isDone = done.has(batch.key);
+      var li = el('li', { class: 'batch' + (isDone ? ' done' : '') });
+      var status = el('span', { class: 'batch-status', text: isDone ? '✓ Sent' : '' });
+      var doneBox = el('input', { type: 'checkbox' });
+      doneBox.checked = isDone;
+
+      function setDone(on) {
+        if (on) done.add(batch.key); else done.delete(batch.key);
+        persistDone();
+        li.classList.toggle('done', on);
+        status.textContent = on ? '✓ Sent' : '';
+        doneBox.checked = on;
+        updateProgress();
+      }
+      doneBox.addEventListener('change', function () { setDone(doneBox.checked); });
+
+      var open = el('a', {
+        class: 'btn primary', href: massEntryUrl(batch), target: '_blank', rel: 'noopener',
+        'aria-label': 'Open batch ' + (i + 1) + ' in TCGplayer Mass Entry'
+      }, ['Open in TCGplayer']);
+      open.addEventListener('click', function () { setDone(true); });
+
+      var copyBtn = el('button', { type: 'button', title: 'Copy this batch to paste into Mass Entry yourself' }, ['Copy list']);
+      copyBtn.addEventListener('click', function () {
+        var text = batch.cards.map(entryLine).join('\n');
+        copyText(text).then(function (ok) {
+          copyBtn.textContent = ok ? 'Copied ✓' : 'Copy failed';
+          setTimeout(function () { copyBtn.textContent = 'Copy list'; }, 1600);
+        });
+      });
+
+      var details = el('details', { class: 'cards-detail' }, [el('summary', { text: 'Show the ' + plural(batch.cards.length, 'card') })]);
+      details.addEventListener('toggle', function () {
+        if (details.open && !details.querySelector('table')) details.appendChild(cardTable(batch));
+      });
+
+      li.appendChild(el('div', { class: 'batch-head' }, [
+        el('span', { class: 'batch-title', text: 'Batch ' + (i + 1) }),
+        el('span', { class: 'muted small', text: 'of ' + batches.length }),
+        status
+      ]));
+      li.appendChild(el('div', { class: 'batch-meta num', text:
+        plural(batch.cards.length, 'card') + ' · ' + setCodesIn(batch) + ' · about ' + money(cost * state.qty) }));
+      li.appendChild(el('div', { class: 'batch-actions' }, [
+        open, copyBtn,
+        el('label', { class: 'check small' }, [doneBox, el('span', { text: 'Sent to cart' })])
+      ]));
+      li.appendChild(details);
+      list.appendChild(li);
+    });
+    updateProgress();
+  }
+
+  function updateProgress() {
+    var total = currentBatches.length;
+    var n = currentBatches.filter(function (b) { return done.has(b.key); }).length;
+    $('#progress-text').textContent = total ? (n + ' of ' + total + ' batches sent') : '';
+    $('#progress-bar').style.width = total ? (100 * n / total) + '%' : '0';
+  }
+
+  // ---- controls ----
+  function bindControls() {
+    var qty = $('#qty');
+    qty.value = state.qty;
+    // Only re-render when the value really changes: a re-render while the field is losing
+    // focus would swap out the button the user is tapping.
+    qty.addEventListener('input', function () {
+      var v = parseInt(qty.value, 10);
+      if (!isNaN(v) && v >= 1 && v <= 99 && v !== state.qty) { state.qty = v; update(); }
+    });
+    qty.addEventListener('change', function () {
+      var v = clampInt(qty.value, 1, 99, 1);
+      if (String(v) !== qty.value) qty.value = v;
+      if (v !== state.qty) { state.qty = v; update(); }
+    });
+
+    var maxPrice = $('#max-price');
+    maxPrice.value = state.maxPrice;
+    maxPrice.addEventListener('input', function () { state.maxPrice = maxPrice.value; update(); });
+
+    var skip = $('#skip-unlisted');
+    skip.checked = state.skipUnlisted;
+    skip.addEventListener('change', function () { state.skipUnlisted = skip.checked; update(); });
+
+    var size = $('#batch-size');
+    size.value = String(state.batchSize);
+    size.addEventListener('change', function () { state.batchSize = parseInt(size.value, 10); update(); });
+
+    $('#reset-progress').addEventListener('click', function () {
+      done.clear();
+      persistDone();
+      update();
+    });
+
+    var pl = $('#product-line');
+    pl.value = state.productLine;
+    pl.addEventListener('change', function () {
+      var v = pl.value.trim() || DATA.productLine.name;
+      pl.value = v;
+      if (v !== state.productLine) { state.productLine = v; update(); }
+    });
+    $('#product-line-reset').addEventListener('click', function () {
+      state.productLine = DATA.productLine.name;
+      pl.value = state.productLine;
+      update();
+    });
+
+    var fmt = $('#entry-format');
+    fmt.value = state.format;
+    fmt.addEventListener('change', function () { state.format = fmt.value === 'name' ? 'name' : 'id'; update(); });
+  }
+
+  function update() {
+    persist();
+    updateFilters();
+    var sel = selectedCards();
+    var batches = makeBatches(sel);
+    updateSummary(sel, batches);
+    renderBatches(batches);
+  }
+
+  function footer() {
+    var d = new Date(DATA.generatedAt);
+    var when = isNaN(d) ? DATA.generatedAt : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    var f = $('#footer');
+    f.appendChild(document.createTextNode(
+      int.format(DATA.cards.length) + ' cards in ' + DATA.sets.length + ' sets. Card list and prices from '));
+    f.appendChild(el('a', { href: DATA.source, target: '_blank', rel: 'noopener', text: 'TCGCSV' }));
+    f.appendChild(document.createTextNode(
+      ' (a daily mirror of TCGplayer\'s catalog), updated ' + when +
+      '. Not affiliated with TCGplayer or Riot Games.'));
+  }
+
+  buildSets();
+  buildRarities();
+  bindControls();
+  footer();
+  update();
+})();
+</script>
+</body>
+</html>
