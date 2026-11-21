@@ -115,6 +115,7 @@
   .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
   .btn.link { background: none; border: 0; padding: 4px 6px; min-height: 0; color: var(--accent); text-decoration: underline; }
   :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
   /* Set list */
   .set-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
@@ -230,7 +231,81 @@
   .inline { display: flex; gap: 8px; }
   .inline input { flex: 1; min-width: 0; }
 
+  /* Tabs */
+  .tabs {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; gap: 4px; padding: 8px 0; margin-top: 8px;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    flex: 0 1 auto; min-height: 44px; padding: 8px 18px;
+    border: 1px solid transparent; border-radius: 10px; background: transparent;
+    color: var(--muted); font-weight: 600;
+  }
+  .tab:hover { background: var(--surface-2); border-color: transparent; color: var(--text); }
+  .tab[aria-selected="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+  .tab .tab-count { font-weight: 500; font-size: 0.85em; color: var(--muted); }
+  /* minmax(0, 1fr) lets wide tables scroll inside their box instead of widening the page */
+  main, .view { grid-template-columns: minmax(0, 1fr); }
+  .view { display: grid; gap: 16px; }
+  .panel { min-width: 0; }
+  .view[hidden] { display: none; }
+
+  /* Decks in the importer */
+  .importer-decks { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+  .importer-deck {
+    display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 12px;
+    border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2);
+  }
+  .importer-deck .name { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+  .importer-deck .meta { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+
+  /* Decks view */
+  textarea {
+    font: inherit; font-size: 0.95rem; width: 100%; min-height: 150px; padding: 10px 12px; resize: vertical;
+    border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  }
+  .row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 10px; }
+  .msg-ok { color: var(--done); font-weight: 600; }
+  .msg-err { color: #c0392b; font-weight: 600; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .msg-err { color: #ff8a7a; } }
+  :root[data-theme="dark"] .msg-err { color: #ff8a7a; }
+  .report { margin-top: 10px; }
+  .report ul { margin: 6px 0 0; padding-left: 20px; font-size: 0.9rem; }
+  .deck-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 12px; }
+  .deck-toolbar .field { width: 210px; }
+  .deck-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .deck { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--surface); }
+  .deck.in-importer { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+  .deck-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .deck-name {
+    flex: 1 1 220px; min-width: 0; font: inherit; font-weight: 700; font-size: 1.05rem;
+    padding: 6px 8px; margin-left: -8px; border: 1px solid transparent; border-radius: 8px;
+    background: transparent; color: var(--text);
+  }
+  .deck-name:hover, .deck-name:focus { border-color: var(--border); background: var(--surface-2); }
+  .badge { font-size: 0.78rem; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+  .deck-stats { color: var(--muted); font-size: 0.875rem; margin: 2px 0 10px; }
+  .deck-warn { font-size: 0.85rem; margin: -4px 0 10px; }
+  .deck-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .deck-actions .check { margin-left: auto; align-items: center; min-height: 40px; }
+  .deck-actions .check input { margin: 0; }
+  .btn.danger:hover { border-color: #c0392b; color: #c0392b; }
+  .deck-section td.section { font-weight: 700; color: var(--text); background: var(--surface-2); }
+  .tag { font-size: 0.72rem; color: var(--accent); margin-left: 6px; font-weight: 600; }
+  .site-groups { display: grid; gap: 16px; }
+  .site-groups h3 { margin: 0 0 8px; font-size: 1rem; }
+  .site-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+  .site-list a {
+    display: block; height: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface-2); color: var(--text); text-decoration: none;
+  }
+  .site-list a:hover { border-color: var(--accent); }
+  .site-list strong { display: block; color: var(--accent); }
+  .site-list span { display: block; font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+
   footer { padding: 8px 0 32px; color: var(--muted); font-size: 0.8rem; }
+  footer p { margin: 0 0 6px; }
   footer a { color: inherit; }
   .error-box { margin: 24px 0; }
 
@@ -249,6 +324,12 @@
     .set-cards { padding: 10px 8px 10px; }
     .card-row { grid-template-columns: 18px 4.6em 1fr auto; gap: 8px; padding: 7px 8px; }
     .card-name .rar { display: block; margin-left: 0; }
+    .tab { flex: 1 1 0; padding: 8px 10px; }
+    .deck-toolbar .field { width: 100%; }
+    .deck-actions .btn, .deck-actions button { flex: 1 1 auto; }
+    .deck-actions .check { margin-left: 0; width: 100%; }
+    .importer-deck { flex-wrap: wrap; }
+    .site-list { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -256,7 +337,7 @@
 <div class="wrap">
   <header class="top">
     <h1>Riftbound Mass Entry</h1>
-    <p>Fill a TCGplayer cart with every Riftbound card, from every set, a batch at a time.</p>
+    <p>Fill a TCGplayer cart with Riftbound cards: whole sets, hand-picked cards or decks, a batch at a time.</p>
   </header>
 
   <div id="app-error" class="panel notice error-box" hidden>
@@ -265,6 +346,12 @@
   </div>
 
   <main id="app" hidden>
+    <nav class="tabs" role="tablist" aria-label="Views">
+      <button type="button" class="tab" role="tab" id="tab-importer" data-view="importer" aria-controls="view-importer" aria-selected="true">Importer</button>
+      <button type="button" class="tab" role="tab" id="tab-decks" data-view="decks" aria-controls="view-decks" aria-selected="false">Decks <span id="tab-decks-count" class="tab-count"></span></button>
+    </nav>
+
+    <div id="view-importer" class="view" role="tabpanel" aria-labelledby="tab-importer">
     <section class="panel" aria-labelledby="choose-h">
       <h2 id="choose-h"><span class="step">1</span>Choose cards</h2>
 
@@ -313,6 +400,19 @@
         <span>Skip cards nobody is selling right now <span id="unlisted-count" class="muted small"></span><br>
         <span class="muted small">TCGplayer can't add them, and one unfillable line can stop a whole batch.</span></span>
       </label>
+
+      <fieldset class="deck-fieldset">
+        <legend>Decks</legend>
+        <ul id="importer-decks" class="importer-decks"></ul>
+        <p id="importer-decks-empty" class="muted small">No decks added. <button type="button" class="btn link" data-goto="decks">Open the Decks tab</button> to import one.</p>
+        <div id="merge-field" class="field" hidden>
+          <label for="merge-rule">When a card is in a deck and also picked above</label>
+          <select id="merge-rule">
+            <option value="max">Buy the higher count (share the copies)</option>
+            <option value="sum">Add the counts together</option>
+          </select>
+        </div>
+      </fieldset>
     </section>
 
     <section class="panel summary" aria-live="polite" id="summary"></section>
@@ -375,12 +475,56 @@
         <p class="muted small">Product IDs pin down the exact printing. Switch to names and set codes if TCGplayer ever rejects the ID lines. Card names are unique within each set, so both pick the same card.</p>
       </div>
     </details>
+    </div>
+
+    <div id="view-decks" class="view" role="tabpanel" aria-labelledby="tab-decks" hidden>
+      <section class="panel" aria-labelledby="add-deck-h">
+        <h2 id="add-deck-h">Add a deck</h2>
+        <p class="muted small">Paste a deck code or a deck list from any Riftbound deck site (see <em>Find decks</em> below). Lists can look like <code>3 Void Seeker</code>, <code>3x Void Seeker (OGN-024)</code> or <code>OGN-024 x3</code>, with or without headings like <code>Runes:</code> and <code>Sideboard:</code>.</p>
+        <label for="deck-input" class="sr-only">Deck code or list</label>
+        <textarea id="deck-input" spellcheck="false" placeholder="Deck code, or one card per line:
+1 Kai'Sa, Daughter of the Void
+3 Void Seeker
+6 Fury Rune"></textarea>
+        <div class="row-actions">
+          <button type="button" id="deck-add" class="btn primary">Add deck</button>
+          <span id="deck-msg" class="small" role="status"></span>
+        </div>
+        <div id="deck-report" class="report"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="my-decks-h">
+        <h2 id="my-decks-h">My decks</h2>
+        <div class="deck-toolbar">
+          <div class="field">
+            <label for="deck-sort">Sort by</label>
+            <select id="deck-sort">
+              <option value="newest">Newest first</option>
+              <option value="name">Name</option>
+              <option value="cost-desc">Cost, highest first</option>
+              <option value="cost-asc">Cost, lowest first</option>
+              <option value="size">Most cards</option>
+            </select>
+          </div>
+        </div>
+        <ul id="deck-list" class="deck-list"></ul>
+        <p class="muted small">Decks are saved in this browser on this device.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="find-h">
+        <h2 id="find-h">Find decks</h2>
+        <p class="muted small">Fan sites with Riftbound decks. Open a deck there, use its <em>Copy deck code</em> or <em>Export</em> button, and paste the result above. These sites aren't connected to this app. Play-rate and win-rate stats stay on their pages: Riot's developer policy doesn't let fan apps publish them.</p>
+        <div id="site-groups" class="site-groups"></div>
+      </section>
+    </div>
   </main>
 
   <footer id="footer"></footer>
 </div>
 
 <script src="data/riftbound-cards.js"></script>
+<script src="deckcode.js"></script>
+<script src="decks.js"></script>
 <script>
 (function () {
   'use strict';
@@ -441,6 +585,10 @@
   cards.forEach(function (c) { if (rarities.indexOf(c.rarity) === -1) rarities.push(c.rarity); });
   rarities.sort(function (a, b) { return rarityRank(a) - rarityRank(b) || collator.compare(a, b); });
 
+  var cardById = {};
+  var cardOrder = {};
+  cards.forEach(function (c, i) { cardById[c.id] = c; cardOrder[c.id] = i; });
+
   function priceOf(c) { return c.market != null ? c.market : c.low; }
   function variantOf(c) { return c.variant || 'standard'; }
   function isMain(c) { return c.main !== false; } // one of its set's numbered cards, e.g. 001-298
@@ -467,7 +615,9 @@
     skipUnlisted: saved.skipUnlisted !== false,
     batchSize: BATCH_SIZES.indexOf(saved.batchSize) !== -1 ? saved.batchSize : 100,
     productLine: saved.productLine || DATA.productLine.name,
-    format: saved.format === 'name' ? 'name' : 'id'
+    format: saved.format === 'name' ? 'name' : 'id',
+    mergeRule: saved.mergeRule === 'sum' ? 'sum' : 'max', // card in a deck and also picked from a set
+    deckSort: saved.deckSort || 'newest'
   };
   var done = new Set(load('done', []) || []);
 
@@ -483,9 +633,17 @@
       skipUnlisted: state.skipUnlisted,
       batchSize: state.batchSize,
       productLine: state.productLine,
-      format: state.format
+      format: state.format,
+      mergeRule: state.mergeRule,
+      deckSort: state.deckSort
     });
   }
+
+  // ---- saved decks ----
+  // { id, name, added, cards: [{id, qty, side}], championId, unmatched: [{text, qty, reason}],
+  //   includeSide, inImporter }
+  var decks = (load('decks', []) || []).filter(function (d) { return d && Array.isArray(d.cards); });
+  function persistDecks() { save('decks', decks); }
   function persistDone() { save('done', Array.from(done)); }
 
   function clampInt(v, min, max, fallback) {
@@ -757,29 +915,68 @@
     $('#unlisted-count').textContent = '(' + int.format(unlisted) + ' in your selection)';
   }
 
-  // ---- summary ----
-  function updateSummary(sel, batches) {
-    var market = 0, low = 0, missing = 0;
-    sel.forEach(function (c) {
-      var p = priceOf(c);
-      if (p == null) missing++; else market += p;
-      if (c.low != null) low += c.low;
+  // ---- order lines: set picks plus decks added to the importer ----
+  function deckCounts(deck) { // product id -> copies the deck needs
+    var out = {};
+    deck.cards.forEach(function (e) {
+      if (!cardById[e.id] || (e.side && !deck.includeSide)) return;
+      out[e.id] = (out[e.id] || 0) + e.qty;
     });
-    market *= state.qty;
-    low *= state.qty;
+    return out;
+  }
+  function combine(a, b) { return state.mergeRule === 'sum' ? a + b : Math.max(a, b); }
+  function importerDecks() { return decks.filter(function (d) { return d.inImporter; }); }
+  function buildOrder() {
+    var lines = {};
+    selectedCards().forEach(function (c) { lines[c.id] = { card: c, qty: state.qty, deck: false }; });
+    importerDecks().forEach(function (d) {
+      var counts = deckCounts(d);
+      Object.keys(counts).forEach(function (id) {
+        var l = lines[id];
+        if (l) { l.qty = combine(l.qty, counts[id]); l.deck = true; }
+        else lines[id] = { card: cardById[id], qty: counts[id], deck: true, deckOnly: true };
+      });
+    });
+    return Object.keys(lines).map(function (id) { return lines[id]; })
+      .sort(function (a, b) { return cardOrder[a.card.id] - cardOrder[b.card.id]; });
+  }
+  function linesFromCounts(counts) {
+    return Object.keys(counts).map(function (id) { return { card: cardById[id], qty: counts[id] }; })
+      .sort(function (a, b) { return cardOrder[a.card.id] - cardOrder[b.card.id]; });
+  }
+  function totals(lines) {
+    var t = { lines: lines.length, copies: 0, market: 0, low: 0, missing: 0 };
+    lines.forEach(function (l) {
+      var p = priceOf(l.card);
+      t.copies += l.qty;
+      if (p == null) t.missing++; else t.market += p * l.qty;
+      if (l.card.low != null) t.low += l.card.low * l.qty;
+    });
+    return t;
+  }
+
+  // ---- summary ----
+  function updateSummary(lines, batches) {
+    var t = totals(lines);
+    var market = t.market, low = t.low, missing = t.missing;
     var box = $('#summary');
     box.textContent = '';
-    if (!sel.length) {
+    if (!lines.length) {
       box.appendChild(el('div', { class: 'big', text: 'No cards selected' }));
-      box.appendChild(el('div', { class: 'muted', text: 'Pick at least one set and one rarity.' }));
+      box.appendChild(el('div', { class: 'muted', text: 'Pick at least one set and one rarity, or add a deck.' }));
       return;
     }
-    var copies = sel.length * state.qty;
     box.appendChild(el('div', { class: 'big num' }, [
-      plural(sel.length, 'card'),
-      state.qty > 1 ? ' × ' + state.qty + ' = ' + plural(copies, 'copy', 'copies') : '',
+      plural(t.lines, 'card'),
+      t.copies !== t.lines ? ' (' + plural(t.copies, 'copy', 'copies') + ')' : '',
       ' in ' + plural(batches.length, 'batch', 'batches')
     ]));
+    var inDecks = importerDecks();
+    if (inDecks.length) {
+      var fromDecks = lines.filter(function (l) { return l.deckOnly; }).length;
+      box.appendChild(el('div', { class: 'muted small', text: 'Includes ' + plural(inDecks.length, 'deck') +
+        (fromDecks ? ', which add ' + plural(fromDecks, 'card') + ' not picked above' : '') + '.' }));
+    }
     box.appendChild(el('div', { class: 'cost num' }, [
       'About ', el('strong', { text: money(market) }), ' at market price',
       el('span', { class: 'muted', text: ' · ' + money(low) + ' at lowest listings' })
@@ -800,32 +997,32 @@
     for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
     return (h >>> 0).toString(36);
   }
-  function makeBatches(sel) {
+  function makeBatches(lines) {
     var out = [];
-    for (var i = 0; i < sel.length; i += state.batchSize) {
-      var chunk = sel.slice(i, i + state.batchSize);
-      var ids = chunk.map(function (c) { return c.id; }).join(',');
-      out.push({ cards: chunk, key: hash(state.qty + ':' + ids) + '-' + chunk.length });
+    for (var i = 0; i < lines.length; i += state.batchSize) {
+      var chunk = lines.slice(i, i + state.batchSize);
+      var ids = chunk.map(function (l) { return l.qty + 'x' + l.card.id; }).join(',');
+      out.push({ lines: chunk, key: hash(ids) + '-' + chunk.length });
     }
     return out;
   }
   // Mass Entry accepts "quantity-productId" and "quantity Name [SETCODE]" lines.
-  function entryLine(c) {
+  function entryLine(l) {
     if (state.format === 'name') {
-      var code = setById[c.set] && setById[c.set].code;
-      return state.qty + ' ' + c.name + (code ? ' [' + code + ']' : '');
+      var code = setById[l.card.set] && setById[l.card.set].code;
+      return l.qty + ' ' + l.card.name + (code ? ' [' + code + ']' : '');
     }
-    return state.qty + '-' + c.id;
+    return l.qty + '-' + l.card.id;
   }
-  function massEntryUrl(batch) {
+  function massEntryUrl(lines) {
     // Same shape as the "shareable link" TCGplayer's own Mass Entry page generates.
-    var c = batch.cards.map(function (card) { return encodeURIComponent(entryLine(card)); }).join('||');
+    var c = lines.map(function (l) { return encodeURIComponent(entryLine(l)); }).join('||');
     return MASS_ENTRY_URL + '?c=' + c + '&productline=' + encodeURIComponent(state.productLine);
   }
-  function setCodesIn(batch) {
+  function setCodesIn(lines) {
     var codes = [];
-    batch.cards.forEach(function (c) {
-      var code = (setById[c.set] && setById[c.set].code) || '?';
+    lines.forEach(function (l) {
+      var code = (setById[l.card.set] && setById[l.card.set].code) || '?';
       if (codes.indexOf(code) === -1) codes.push(code);
     });
     return codes.length > 4 ? codes.slice(0, 4).join(', ') + ' +' + (codes.length - 4) : codes.join(', ');
@@ -836,6 +1033,17 @@
       return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacyCopy(text); });
     }
     return Promise.resolve(legacyCopy(text));
+  }
+  function copyButton(getText, title, label) {
+    label = label || 'Copy list';
+    var btn = el('button', { type: 'button', title: title }, [label]);
+    btn.addEventListener('click', function () {
+      copyText(getText()).then(function (ok) {
+        btn.textContent = ok ? 'Copied ✓' : 'Copy failed';
+        setTimeout(function () { btn.textContent = label; }, 1600);
+      });
+    });
+    return btn;
   }
   function legacyCopy(text) {
     var ta = el('textarea', { readonly: true, style: 'position:fixed;top:0;left:0;opacity:0' });
@@ -848,21 +1056,26 @@
     return ok;
   }
 
-  function cardTable(batch) {
+  function productLink(c) {
+    return el('a', { href: 'https://www.tcgplayer.com/product/' + c.id, target: '_blank', rel: 'noopener', text: c.name });
+  }
+  function cardTable(lines) {
     var tbody = el('tbody');
-    batch.cards.forEach(function (c) {
+    lines.forEach(function (l) {
+      var c = l.card;
       var p = priceOf(c);
       tbody.appendChild(el('tr', null, [
+        el('td', { class: 'num', text: '×' + l.qty }),
         el('td', { text: (setById[c.set] && setById[c.set].code) || '' }),
         el('td', { class: 'num', text: c.number || '—' }),
-        el('td', null, [el('a', { href: 'https://www.tcgplayer.com/product/' + c.id, target: '_blank', rel: 'noopener', text: c.name })]),
+        el('td', null, [productLink(c), l.deck ? el('span', { class: 'tag', text: 'deck' }) : null]),
         el('td', { text: RARITY_LABEL[c.rarity] || c.rarity }),
         el('td', { class: 'r num', text: p == null ? '—' : money2.format(p) })
       ]));
     });
     return el('div', { class: 'table-wrap' }, [el('table', null, [
       el('thead', null, [el('tr', null, [
-        el('th', { text: 'Set' }), el('th', { text: '#' }), el('th', { text: 'Name' }),
+        el('th', { text: 'Qty' }), el('th', { text: 'Set' }), el('th', { text: '#' }), el('th', { text: 'Name' }),
         el('th', { text: 'Rarity' }), el('th', { class: 'r', text: 'Market' })
       ])]),
       tbody
@@ -880,8 +1093,7 @@
       return;
     }
     batches.forEach(function (batch, i) {
-      var cost = 0;
-      batch.cards.forEach(function (c) { cost += priceOf(c) || 0; });
+      var t = totals(batch.lines);
       var isDone = done.has(batch.key);
       var li = el('li', { class: 'batch' + (isDone ? ' done' : '') });
       var status = el('span', { class: 'batch-status', text: isDone ? '✓ Sent' : '' });
@@ -899,23 +1111,17 @@
       doneBox.addEventListener('change', function () { setDone(doneBox.checked); });
 
       var open = el('a', {
-        class: 'btn primary', href: massEntryUrl(batch), target: '_blank', rel: 'noopener',
+        class: 'btn primary', href: massEntryUrl(batch.lines), target: '_blank', rel: 'noopener',
         'aria-label': 'Open batch ' + (i + 1) + ' in TCGplayer Mass Entry'
       }, ['Open in TCGplayer']);
       open.addEventListener('click', function () { setDone(true); });
 
-      var copyBtn = el('button', { type: 'button', title: 'Copy this batch to paste into Mass Entry yourself' }, ['Copy list']);
-      copyBtn.addEventListener('click', function () {
-        var text = batch.cards.map(entryLine).join('\n');
-        copyText(text).then(function (ok) {
-          copyBtn.textContent = ok ? 'Copied ✓' : 'Copy failed';
-          setTimeout(function () { copyBtn.textContent = 'Copy list'; }, 1600);
-        });
-      });
+      var copyBtn = copyButton(function () { return batch.lines.map(entryLine).join('\n'); },
+        'Copy this batch to paste into Mass Entry yourself');
 
-      var details = el('details', { class: 'cards-detail' }, [el('summary', { text: 'Show the ' + plural(batch.cards.length, 'card') })]);
+      var details = el('details', { class: 'cards-detail' }, [el('summary', { text: 'Show the ' + plural(batch.lines.length, 'card') })]);
       details.addEventListener('toggle', function () {
-        if (details.open && !details.querySelector('table')) details.appendChild(cardTable(batch));
+        if (details.open && !details.querySelector('table')) details.appendChild(cardTable(batch.lines));
       });
 
       li.appendChild(el('div', { class: 'batch-head' }, [
@@ -924,7 +1130,8 @@
         status
       ]));
       li.appendChild(el('div', { class: 'batch-meta num', text:
-        plural(batch.cards.length, 'card') + ' · ' + setCodesIn(batch) + ' · about ' + money(cost * state.qty) }));
+        plural(t.lines, 'card') + (t.copies !== t.lines ? ' (' + plural(t.copies, 'copy', 'copies') + ')' : '') +
+        ' · ' + setCodesIn(batch.lines) + ' · about ' + money(t.market) }));
       li.appendChild(el('div', { class: 'batch-actions' }, [
         open, copyBtn,
         el('label', { class: 'check small' }, [doneBox, el('span', { text: 'Sent to cart' })])
@@ -942,8 +1149,313 @@
     $('#progress-bar').style.width = total ? (100 * n / total) + '%' : '0';
   }
 
+  // ---- decks ----
+  var resolver = window.RiftboundDecks ? window.RiftboundDecks.createResolver(DATA) : null;
+  var openDecks = new Set(); // decks whose card table is expanded
+
+  var DECK_SITES = [
+    { title: 'Tournament results', sites: [
+      { name: 'Riftbound.org', url: 'https://riftbound.org/meta/decks', note: 'Thousands of tournament decklists, searchable by legend, player or card.' },
+      { name: 'Riftbound.org events', url: 'https://riftbound.org/meta/tournaments', note: 'Recent tournaments, winners and their lists.' },
+      { name: 'RiftDecks', url: 'https://riftdecks.com/', note: 'Top decks from recent events, by legend.' },
+      { name: 'Riftbound Stats', url: 'https://www.riftboundstats.com/decks', note: 'Tournament decklists and meta builds.' },
+      { name: 'Riftbound.one', url: 'https://www.riftbound.one/decklists', note: 'Top tournament decks.' },
+      { name: 'Rift Mana', url: 'https://riftmana.com/tournaments/', note: 'Tournament results with decklists.' }
+    ] },
+    { title: 'Community decks', sites: [
+      { name: 'Piltover Archive', url: 'https://piltoverarchive.com/decks', note: 'Shared decks and a builder. Its deck codes paste straight in here.' },
+      { name: 'RiftAtlas', url: 'https://riftatlas.com/decks', note: 'Build and browse community decks.' },
+      { name: 'RiftStorm', url: 'https://riftstorm.gg/decks', note: 'Community builds, meta lists and trial decks.' },
+      { name: 'RiftRank', url: 'https://www.riftrank.com/decks', note: 'Top-rated decks for every legend.' },
+      { name: 'ExBurst', url: 'https://exburst.dev/riftbound/', note: 'Public decks and a card database.' },
+      { name: 'Riftbinder', url: 'https://riftbinder.com/deck-builder', note: 'Official and community decks with prices.' }
+    ] },
+    { title: 'Meta and tier lists', sites: [
+      { name: 'ExBurst tier list', url: 'https://exburst.dev/riftbound/tournaments/meta', note: 'Monthly tier list built from tournament results.' },
+      { name: 'Riftools tier list', url: 'https://www.riftools.app/meta/tier-list', note: 'Meta decks ranked by finishes.' },
+      { name: 'Riftbound France', url: 'https://riftboundfrance.fr/en/decks', note: 'Decklists with written guides (English pages).' }
+    ] }
+  ];
+
+  function buildSiteDirectory() {
+    var wrap = $('#site-groups');
+    DECK_SITES.forEach(function (g) {
+      wrap.appendChild(el('div', null, [
+        el('h3', { text: g.title }),
+        el('ul', { class: 'site-list' }, g.sites.map(function (s) {
+          return el('li', null, [el('a', { href: s.url, target: '_blank', rel: 'noopener' }, [
+            el('strong', { text: s.name }), el('span', { text: s.note })
+          ])]);
+        }))
+      ]));
+    });
+  }
+
+  function deckStats(deck) {
+    var lines = linesFromCounts(deckCounts(deck));
+    var priciest = null;
+    lines.forEach(function (l) {
+      var p = priceOf(l.card);
+      if (p != null && (!priciest || p > priceOf(priciest))) priciest = l.card;
+    });
+    var side = 0;
+    deck.cards.forEach(function (e) { if (e.side && cardById[e.id]) side += e.qty; });
+    return {
+      lines: lines, t: totals(lines), priciest: priciest, side: side,
+      unlisted: lines.filter(function (l) { return l.card.low == null; }).length
+    };
+  }
+
+  var SECTION_ORDER = ['Legend', 'Main deck', 'Battlefields', 'Runes', 'Sideboard'];
+  function deckSection(e) {
+    var type = cardById[e.id].type || '';
+    if (e.side) return 'Sideboard';
+    if (/legend/i.test(type)) return 'Legend';
+    if (/battlefield/i.test(type)) return 'Battlefields';
+    if (/rune/i.test(type)) return 'Runes';
+    return 'Main deck';
+  }
+  function deckGroups(deck) {
+    var groups = {};
+    deck.cards.forEach(function (e) {
+      if (!cardById[e.id]) return;
+      var s = deckSection(e);
+      (groups[s] = groups[s] || []).push(e);
+    });
+    return SECTION_ORDER.filter(function (s) { return groups[s]; }).map(function (s) {
+      return { name: s, entries: groups[s].sort(function (a, b) { return cardOrder[a.id] - cardOrder[b.id]; }) };
+    });
+  }
+  function deckText(deck) {
+    return deckGroups(deck).map(function (g) {
+      return g.name + ':\n' + g.entries.map(function (e) { return e.qty + ' ' + cardById[e.id].name; }).join('\n');
+    }).join('\n\n');
+  }
+
+  function deckTable(deck) {
+    var tbody = el('tbody');
+    deckGroups(deck).forEach(function (g) {
+      var n = 0;
+      g.entries.forEach(function (e) { n += e.qty; });
+      var label = g.name + ' (' + n + ')' + (g.name === 'Sideboard' && !deck.includeSide ? ', not included' : '');
+      tbody.appendChild(el('tr', { class: 'deck-section' }, [el('td', { class: 'section', colspan: '5', text: label })]));
+      g.entries.forEach(function (e) {
+        var c = cardById[e.id];
+        var p = priceOf(c);
+        tbody.appendChild(el('tr', null, [
+          el('td', { class: 'num', text: '×' + e.qty }),
+          el('td', { class: 'num', text: ((setById[c.set] && setById[c.set].code) || '') + ' ' + (c.number || '') }),
+          el('td', null, [
+            productLink(c),
+            deck.championId === c.id ? el('span', { class: 'tag', text: 'champion' }) : null,
+            c.low == null ? el('span', { class: 'tag', text: 'no listings' }) : null
+          ]),
+          el('td', { class: 'r num', text: p == null ? '—' : money2.format(p) }),
+          el('td', { class: 'r num', text: p == null ? '—' : money2.format(p * e.qty) })
+        ]));
+      });
+    });
+    return el('div', { class: 'table-wrap' }, [el('table', null, [
+      el('thead', null, [el('tr', null, [
+        el('th', { text: 'Qty' }), el('th', { text: 'Card' }), el('th', { text: 'Name' }),
+        el('th', { class: 'r', text: 'Each' }), el('th', { class: 'r', text: 'Total' })
+      ])]),
+      tbody
+    ])]);
+  }
+
+  function sortedDecks() {
+    var cost = {}, size = {};
+    decks.forEach(function (d) { var t = totals(linesFromCounts(deckCounts(d))); cost[d.id] = t.market; size[d.id] = t.copies; });
+    var list = decks.slice();
+    var byName = function (a, b) { return collator.compare(a.name, b.name); };
+    var sorters = {
+      name: byName,
+      'cost-desc': function (a, b) { return cost[b.id] - cost[a.id] || byName(a, b); },
+      'cost-asc': function (a, b) { return cost[a.id] - cost[b.id] || byName(a, b); },
+      size: function (a, b) { return size[b.id] - size[a.id] || byName(a, b); },
+      newest: function (a, b) { return String(b.added).localeCompare(String(a.added)); }
+    };
+    return list.sort(sorters[state.deckSort] || sorters.newest);
+  }
+
+  function setInImporter(deck, on) {
+    deck.inImporter = on;
+    persistDecks();
+    renderDeckList();
+    update();
+  }
+
+  function renderDeck(deck) {
+    var s = deckStats(deck);
+    var li = el('li', { class: 'deck' + (deck.inImporter ? ' in-importer' : ''), 'data-deck': deck.id });
+
+    var name = el('input', { class: 'deck-name', type: 'text', 'aria-label': 'Deck name', spellcheck: 'false' });
+    name.value = deck.name;
+    name.addEventListener('change', function () {
+      deck.name = name.value.trim() || 'Untitled deck';
+      name.value = deck.name;
+      persistDecks();
+      renderImporterDecks();
+    });
+    li.appendChild(el('div', { class: 'deck-head' }, [name, deck.inImporter ? el('span', { class: 'badge', text: 'In importer' }) : null]));
+
+    var added = new Date(deck.added);
+    li.appendChild(el('div', { class: 'deck-stats num', text: [
+      plural(s.t.copies, 'card'),
+      'about ' + money(s.t.market),
+      s.priciest ? 'priciest: ' + s.priciest.name + ' ' + money2.format(priceOf(s.priciest)) : null,
+      isNaN(added) ? null : 'added ' + added.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    ].filter(Boolean).join(' · ') }));
+
+    var warnings = [];
+    if (deck.unmatched && deck.unmatched.length) {
+      warnings.push('Not found: ' + deck.unmatched.map(function (u) { return u.qty + '× ' + u.text; }).join(', ') + '.');
+    }
+    if (s.unlisted) warnings.push(plural(s.unlisted, 'card') + ' with no listings right now, so TCGplayer may not fill ' + (s.unlisted === 1 ? 'it' : 'them') + '.');
+    if (warnings.length) li.appendChild(el('div', { class: 'deck-warn notice', text: warnings.join(' ') }));
+
+    var toggle = el('button', { type: 'button', class: deck.inImporter ? 'btn' : 'btn primary' },
+      [deck.inImporter ? 'Remove from importer' : 'Add to importer']);
+    toggle.addEventListener('click', function () { setInImporter(deck, !deck.inImporter); });
+
+    var buy = el('a', { class: 'btn', href: massEntryUrl(s.lines), target: '_blank', rel: 'noopener',
+      title: 'Open only this deck in TCGplayer Mass Entry' }, ['Buy just this deck']);
+
+    var del = el('button', { type: 'button', class: 'btn danger' }, ['Delete']);
+    del.addEventListener('click', function () {
+      if (!window.confirm('Delete "' + deck.name + '"?')) return;
+      decks = decks.filter(function (d) { return d !== deck; });
+      persistDecks();
+      renderDeckList();
+      update();
+    });
+
+    var actions = [toggle, buy, copyButton(function () { return deckText(deck); }, 'Copy this deck as a text list'), del];
+    if (s.side) {
+      var sideBox = el('input', { type: 'checkbox' });
+      sideBox.checked = deck.includeSide !== false;
+      sideBox.addEventListener('change', function () { deck.includeSide = sideBox.checked; persistDecks(); renderDeckList(); update(); });
+      actions.push(el('label', { class: 'check small' }, [sideBox, el('span', { text: 'Include sideboard (' + plural(s.side, 'card') + ')' })]));
+    }
+    li.appendChild(el('div', { class: 'deck-actions' }, actions));
+
+    var details = el('details', { class: 'cards-detail' }, [el('summary', { text: 'Show the cards' })]);
+    details.open = openDecks.has(deck.id);
+    if (details.open) details.appendChild(deckTable(deck));
+    details.addEventListener('toggle', function () {
+      if (details.open) { openDecks.add(deck.id); if (!details.querySelector('table')) details.appendChild(deckTable(deck)); }
+      else openDecks.delete(deck.id);
+    });
+    li.appendChild(details);
+    return li;
+  }
+
+  function renderDeckList() {
+    var list = $('#deck-list');
+    list.textContent = '';
+    $('#tab-decks-count').textContent = decks.length ? '(' + decks.length + ')' : '';
+    if (!decks.length) {
+      list.appendChild(el('li', { class: 'empty', text: 'No decks yet. Paste one above, or find one with the sites below.' }));
+      return;
+    }
+    sortedDecks().forEach(function (d) { list.appendChild(renderDeck(d)); });
+  }
+
+  function renderImporterDecks() {
+    var list = $('#importer-decks');
+    list.textContent = '';
+    var inDecks = importerDecks();
+    $('#importer-decks-empty').hidden = inDecks.length > 0;
+    $('#merge-field').hidden = !inDecks.length;
+    inDecks.forEach(function (d) {
+      var t = totals(linesFromCounts(deckCounts(d)));
+      var rm = el('button', { type: 'button', class: 'btn link', 'aria-label': 'Remove ' + d.name + ' from the importer' }, ['Remove']);
+      rm.addEventListener('click', function () { setInImporter(d, false); });
+      list.appendChild(el('li', { class: 'importer-deck' }, [
+        el('span', { class: 'name', text: d.name }),
+        el('span', { class: 'meta num', text: plural(t.copies, 'card') + ' · ' + money(t.market) }),
+        rm
+      ]));
+    });
+  }
+
+  function renderReport(res) {
+    var report = $('#deck-report');
+    report.textContent = '';
+    if (res.unmatched.length) {
+      report.appendChild(el('div', { class: 'notice' }, [
+        'Couldn\'t match ' + plural(res.unmatched.length, 'line') + ':',
+        el('ul', null, res.unmatched.map(function (u) { return el('li', { text: u.qty + ' × ' + u.text + ': ' + u.reason }); }))
+      ]));
+    }
+    if (res.ok && res.skipped.length) {
+      report.appendChild(el('p', { class: 'muted small', text: 'Skipped ' + plural(res.skipped.length, 'line') +
+        ' that didn\'t look like cards: ' + res.skipped.slice(0, 4).join(' · ') + (res.skipped.length > 4 ? ' …' : '') }));
+    }
+  }
+
+  function addDeckFromInput() {
+    var input = $('#deck-input');
+    var msg = $('#deck-msg');
+    msg.className = 'small';
+    if (!resolver) { msg.textContent = 'The deck tools didn\'t load.'; msg.classList.add('msg-err'); return; }
+    var res = window.RiftboundDecks.importDeck(input.value, resolver);
+    renderReport(res);
+    if (!res.ok) { msg.textContent = res.error; msg.classList.add('msg-err'); return; }
+    var deck = {
+      id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name: res.name || 'Deck ' + (decks.length + 1),
+      added: new Date().toISOString(),
+      cards: res.cards, championId: res.championId, unmatched: res.unmatched,
+      includeSide: true, inImporter: false
+    };
+    decks.unshift(deck);
+    persistDecks();
+    input.value = '';
+    var copies = 0;
+    res.cards.forEach(function (e) { copies += e.qty; });
+    msg.textContent = 'Added "' + deck.name + '" (' + plural(copies, 'card') + ').';
+    msg.classList.add('msg-ok');
+    renderDeckList();
+    var node = document.querySelector('[data-deck="' + deck.id + '"]');
+    if (node && node.scrollIntoView) node.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  // ---- tabs ----
+  function viewFromHash() { return location.hash === '#decks' ? 'decks' : 'importer'; }
+  function showView(name) {
+    var decksOn = name === 'decks';
+    $('#view-importer').hidden = decksOn;
+    $('#view-decks').hidden = !decksOn;
+    $('#tab-importer').setAttribute('aria-selected', String(!decksOn));
+    $('#tab-decks').setAttribute('aria-selected', String(decksOn));
+    var tabs = document.querySelector('.tabs');
+    if (tabs && window.scrollY > tabs.offsetTop) window.scrollTo(0, tabs.offsetTop);
+  }
+  function goTo(name) {
+    if (viewFromHash() !== name) location.hash = name; // a history entry, so Back returns here
+    showView(name);
+  }
+
   // ---- controls ----
   function bindControls() {
+    document.querySelectorAll('.tab, [data-goto]').forEach(function (btn) {
+      btn.addEventListener('click', function () { goTo(btn.getAttribute('data-view') || btn.getAttribute('data-goto')); });
+    });
+    window.addEventListener('hashchange', function () { showView(viewFromHash()); });
+
+    $('#deck-add').addEventListener('click', addDeckFromInput);
+    $('#deck-input').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) addDeckFromInput();
+    });
+    var sort = $('#deck-sort');
+    sort.value = state.deckSort;
+    sort.addEventListener('change', function () { state.deckSort = sort.value; persist(); renderDeckList(); });
+    var merge = $('#merge-rule');
+    merge.value = state.mergeRule;
+    merge.addEventListener('change', function () { state.mergeRule = merge.value === 'sum' ? 'sum' : 'max'; update(); });
+
     var qty = $('#qty');
     qty.value = state.qty;
     // Only re-render when the value really changes: a re-render while the field is losing
@@ -1000,9 +1512,10 @@
   function update() {
     persist();
     updateFilters();
-    var sel = selectedCards();
-    var batches = makeBatches(sel);
-    updateSummary(sel, batches);
+    renderImporterDecks();
+    var lines = buildOrder();
+    var batches = makeBatches(lines);
+    updateSummary(lines, batches);
     renderBatches(batches);
   }
 
@@ -1015,14 +1528,22 @@
     f.appendChild(el('a', { href: DATA.source, target: '_blank', rel: 'noopener', text: 'TCGCSV' }));
     f.appendChild(document.createTextNode(
       ' (a daily mirror of TCGplayer\'s catalog), updated ' + when +
-      '. Not affiliated with TCGplayer or Riot Games.'));
+      '. Not affiliated with TCGplayer.'));
+    f.appendChild(el('p', { text: 'Riftbound Mass Entry was created under Riot Games\' "Legal Jibber Jabber" policy ' +
+      'using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.' }));
+    f.appendChild(el('p', null, ['Deck codes are read using the open ',
+      el('a', { href: 'https://github.com/Piltover-Archive/RiftboundDeckCodes', target: '_blank', rel: 'noopener', text: 'RiftboundDeckCodes' }),
+      ' format by Piltover Archive (Apache 2.0).']));
   }
 
   buildSets();
   buildRarities();
   buildVariants();
+  buildSiteDirectory();
   bindControls();
   footer();
+  renderDeckList();
+  showView(viewFromHash());
   update();
 })();
 </script>

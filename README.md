@@ -55,6 +55,44 @@ card. Under **Advanced** you can switch to readable lines instead (`1 Blazing Sc
 which use the same set codes Mass Entry lists under *Show Set/Series Codes*.
 **Copy list** copies a batch's lines so you can paste them into Mass Entry yourself.
 
+## Decks
+
+The **Decks** tab (top of the page) is for buying decks to play.
+
+1. Find a deck on one of the sites listed under **Find decks**. The list is grouped into
+   tournament results, community decks, and meta and tier lists.
+2. On that site, use its **Copy deck code** or **Export** button, then paste the result into
+   **Add a deck** and press **Add deck**.
+3. The deck lands in **My decks** with its card list, cost and priciest card. You can rename
+   it, sort your decks (newest, name, cost, size), include or leave out the sideboard, and:
+   - **Buy just this deck**: opens Mass Entry with only that deck, with the right quantities.
+   - **Add to importer**: adds the deck to the Importer's batches, alongside any sets you've
+     picked. If a card is in both, the Importer buys the higher count by default (you can
+     switch it to add the counts together).
+
+What you can paste:
+
+- **Deck codes** in the open [RiftboundDeckCodes](https://github.com/Piltover-Archive/RiftboundDeckCodes)
+  format from Piltover Archive (versions 1–6, including runes, sideboards and extra legends).
+- **Text lists**, one card per line: `3 Void Seeker`, `3x Void Seeker (OGN-024)`, `OGN-024 x3`,
+  `Void Seeker x3`, with or without headings such as `Legend:`, `Runes:` or `Sideboard:`.
+  A line with a set code and number picks that exact printing; a plain name picks the card's
+  regular printing from its set.
+
+Lines that can't be matched are listed so you can fix them. Arcane Box Set (`ARC`) cards
+aren't sold as singles on TCGplayer, so they show up there.
+
+### Why the app links to deck sites instead of showing their decks
+
+- **Riot's Riftbound developer policy** doesn't approve apps that *"publish or retain
+  metagame-defining data"*, which it defines as play rates, win rates and matchup
+  percentages. So this app shows no meta statistics; the linked sites show their own.
+- **The deck sites don't allow copying their data.** Some forbid scraping outright, and others
+  ask that the site not be copied as a whole. Linking to them and importing a deck you
+  copied yourself is fine.
+- [Limitless](https://play.limitlesstcg.com) has an open tournament API, but as of
+  November 2026 its Riftbound events don't include decklists.
+
 ## What it costs
 
 Prices as of November 2026 (the app shows a live total as you change filters):
@@ -133,10 +171,15 @@ Only singles are included. Sealed product (booster boxes, packs, decks, bundles)
 
 | File | What it is |
 | --- | --- |
-| `index.html` | The whole app (HTML, CSS and JavaScript in one file) |
+| `index.html` | The app: page, styles, Importer and Decks views |
+| `decks.js` | Reads pasted deck codes and lists and matches them to TCGplayer products |
+| `deckcode.js` | Deck-code decoder for the RiftboundDeckCodes format |
+| `third_party/RiftboundDeckCodes-LICENSE.txt` | License for the deck-code format the decoder follows (Apache 2.0) |
 | `data/riftbound-cards.js` | Generated card list and prices |
 | `scripts/update_data.py` | Rebuilds the data file from TCGCSV |
 | `.github/workflows/update-data.yml` | Daily data refresh |
 | `manifest.webmanifest`, `icon.svg` | Home-screen app name and icon |
 
-Not affiliated with TCGplayer or Riot Games.
+Riftbound Mass Entry was created under Riot Games' "Legal Jibber Jabber" policy using assets
+owned by Riot Games. Riot Games does not endorse or sponsor this project. Not affiliated with
+TCGplayer.
